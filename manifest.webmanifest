@@ -1,0 +1,13 @@
+{
+  "name": "hince Pop-Up Game",
+  "short_name": "hince Game",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#FFD3E6",
+  "theme_color": "#FF5FA2",
+  "icons": [
+    { "src": "assets/img/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/img/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
