@@ -3,199 +3,171 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#FF5FA2">
+<meta name="theme-color" content="#B6845D">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>hince Pop-Up · Um-Pah! &amp; Tap-Tap!</title>
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="assets/v26/fonts/fonts.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <div id="stage">
 
-  <!-- ============ ATTRACT ============ -->
+  <!-- ============ ATTRACT (v2.6: taped flyer + 4 tear-off ticket tabs; the SELECT step is gone) ============ -->
+  <!-- a tap on a ticket (button.game-card[data-game]) → toIntro(game). app.js layoutSelect() shows only selectable games (4/3/2/1 share the width).
+       has-video: the attract video plays full-screen over the flyer (only the bottom note shows); the first tap adds .peek (flyer), idle → video again -->
   <section class="screen v2" id="s-attract">
-    <video id="attract-video" muted loop playsinline preload="auto"></video>
-    <!-- .at-art hides while #s-attract.has-video (the video plays underneath; window, hand and bottom line stay) -->
     <div class="at-art">
-      <img class="abs" src="assets/img/bg/bg_sky_pink.png" style="left:0;top:0;width:1080px;height:1920px" alt="">
-      <img class="abs" src="assets/img/logo_white.png" style="left:390px;top:96px;width:300px" alt="hince">
-      <!-- v2.4 B layout V3 "Chéo góc": 1 Nu Blur + 1 Radiance Balm + 2 stickers, each floating on its own outer .at-fl wrapper
-           (--fy/--fr amplitude, --fd duration, --fdl delay); static rotation + filters stay on the inner <img>. -->
-      <div class="abs at-fl" style="left:91px;top:210px;z-index:1;--fy:14px;--fr:2deg;--fd:4.6s;--fdl:0s"><img class="prod" src="assets/img/products/nu_blur_tint/06_nu_rose.png" style="height:820px;transform:rotate(-22deg)" alt=""></div>
-      <div class="abs at-fl" style="left:786px;top:770px;z-index:1;--fy:14px;--fr:2deg;--fd:4.2s;--fdl:-2.1s"><img class="prod" src="assets/img/products/radiance_balm/shelly_pink.png" style="height:720px;transform:rotate(24deg)" alt=""></div>
-      <div class="abs at-fl" style="left:785px;top:365px;z-index:2;--fy:16px;--fr:2deg;--fd:3.6s;--fdl:-1s"><img class="glow" src="assets/img/3d/star_chrome.png" style="width:110px;transform:rotate(8deg)" alt=""></div>
-      <div class="abs at-fl" style="left:165px;top:1135px;z-index:2;--fy:16px;--fr:2deg;--fd:3.6s;--fdl:-2.4s"><img class="glow" src="assets/img/3d/sparkle_butter.png" style="width:90px" alt=""></div>
-      <!-- campaign line, never translated: FIND YOUR (Silkscreen chip) · BLUR / GLOW (Pixelify Sans, English only) · yellow & sticker -->
-      <div id="at-title"><div class="t-chip">FIND YOUR</div><div class="tA-word tA-blur">BLUR</div><div class="tA-amp">&amp;</div><div class="tA-word">GLOW</div></div>
+      <div class="abs paper at-flyer">
+        <div class="at-head">
+          <img class="at-logo" src="assets/img/logo.png" alt="hince">
+          <div class="eyebrow at-eb">Pop-Up Store · Takashimaya</div>
+          <div class="disp at-t1">Find your</div>
+          <div class="disp it at-t2">Blur &amp; Glow</div>
+          <div class="at-sub" data-i18n="attract.line"></div>
+        </div>
+        <div class="at-tear dash"></div>
+        <div class="at-tabs">
+          <button class="game-card at-tw" data-game="umpah" style="transform:rotate(-1.2deg)"><span class="tab paper"><span class="num"><i class="badge">1</i></span>
+            <img class="p" src="assets/img/products/nu_blur_tint/06_nu_rose.png" style="transform:rotate(-8deg)" alt="">
+            <span class="disp it nm">Um-Pah!</span><span class="pr">Nu Blur Tint</span><span class="go"><span data-i18n="attract.act.memo"></span> ↓</span><span class="curl"></span></span></button>
+          <button class="game-card at-tw" data-game="umpah2" style="transform:rotate(1.6deg) translateY(6px)"><span class="tab paper"><span class="num"><i class="badge">2</i></span>
+            <img class="p" src="assets/img/products/nu_blur_tint/08_wild.png" style="transform:rotate(7deg)" alt="">
+            <span class="disp it nm">Um-Pah!</span><span class="pr">Nu Blur Tint</span><span class="go"><span data-i18n="attract.act.kiss"></span> ↓</span><span class="curl"></span></span></button>
+          <button class="game-card at-tw" data-game="taptap" style="transform:rotate(-0.6deg)"><span class="tab paper"><span class="num"><i class="badge tp">1</i></span>
+            <img class="p" src="assets/img/products/radiance_balm/shelly_pink.png" style="transform:rotate(-6deg)" alt="">
+            <span class="disp it nm">Tap-Tap!</span><span class="pr">Radiance Balm</span><span class="go"><span data-i18n="attract.act.tap"></span> ↓</span><span class="curl"></span></span></button>
+          <button class="game-card at-tw" data-game="taptap2" style="transform:rotate(2.2deg) translateY(10px)"><span class="tab paper"><span class="num"><i class="badge tp">2</i></span>
+            <img class="p" src="assets/img/products/radiance_balm/lil_mauve.png" style="transform:rotate(6deg)" alt="">
+            <span class="disp it nm">Tap-Tap!</span><span class="pr">Radiance Balm</span><span class="go"><span data-i18n="attract.act.grab"></span> ↓</span><span class="curl"></span></span></button>
+        </div>
+      </div>
+      <div class="tape" style="left:416px;top:168px;transform:rotate(-3deg)"></div>
+      <img class="st" src="assets/v26/stickers/p_heart.svg" style="left:40px;top:250px;width:150px;transform:rotate(-14deg)" alt="">
+      <img class="st" src="assets/v26/stickers/p_sparkle.svg" style="left:858px;top:396px;width:104px;transform:rotate(10deg)" alt="">
+      <img class="st" src="assets/v26/stickers/p_bow.svg" style="left:880px;top:204px;width:150px;transform:rotate(12deg)" alt="">
     </div>
-    <div class="abs win fx-winopen" style="left:150px;top:1320px;width:780px;height:330px">
-      <div class="bar"><span>START.EXE</span><span class="ico"><i class="u"></i><i class="sq"></i>×</span></div>
-      <div class="chip at-ready">ARE YOU READY?</div>
-      <div class="btn fx-breathe at-yes">YES!</div>
-    </div>
-    <div class="abs fx-tap" style="left:700px;top:1530px"><img class="pix" src="assets/img/px/px_hand.svg" style="width:120px;transform:rotate(-18deg)" alt=""></div>
-    <img class="abs pix fx-blink" src="assets/img/px/px_sparkle_w.svg" style="left:170px;top:1735px;width:48px" alt="">
-    <img class="abs pix fx-blink d1" src="assets/img/px/px_sparkle_w.svg" style="left:860px;top:1735px;width:48px" alt="">
-    <div class="abs center vn at-line" data-i18n="attract.line"></div>
-    <!-- v2.3 C1: staff corner buttons; never start the game (app.js corner(): stopPropagation on pointerdown + click).
-         ⚙ #cc-btn → PIN → Control Center; ▶ VIDEO #promo-btn shown (.on) only when settings.promoVideo can load → PROMO -->
-    <button class="at-corner" id="cc-btn" aria-label="control center"><svg viewBox="0 0 12 12"><path d="M4 0h4v1H4zM1 1h2v1H1zM4 1h4v1H4zM9 1h2v1H9zM1 2h10v1H1zM2 3h8v1H2zM0 4h5v1H0zM7 4h5v1H7zM0 5h4v2H0zM8 5h4v2H8zM0 7h5v1H0zM7 7h5v1H7zM2 8h8v1H2zM1 9h10v1H1zM1 10h2v1H1zM4 10h4v1H4zM9 10h2v1H9zM4 11h4v1H4z"/></svg></button>
+    <video id="attract-video" muted loop playsinline preload="auto"></video>
+    <div class="abs paper at-note"><img src="assets/v26/paper/arrow.svg" alt=""><span class="disp it" data-i18n="attract.note"></span></div>
+    <!-- staff corners (never start a game; app.js corner(): stopPropagation on pointerdown + click): ⚙ → PIN → Control Center, VI | EN, ▶ VIDEO (.on when the promo loads) -->
+    <button class="at-corner" id="cc-btn" aria-label="control center"><svg viewBox="0 0 24 24" fill="none" stroke="#7D6458" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg></button>
     <div class="lang-sw" id="lang-sw"><button data-lang="vi">VI</button><button data-lang="en">EN</button></div>
-    <button class="at-corner" id="promo-btn" aria-label="promo video"><svg viewBox="0 0 10 12"><path d="M0 0h2v1h2v1h2v1h2v1h2v4H8v1H6v1H4v1H2v1H0z"/></svg>VIDEO</button>
+    <button class="at-corner" id="promo-btn" aria-label="promo video"><svg viewBox="0 0 10 12"><path d="M1 0.5 L9.5 6 L1 11.5 Z"/></svg>VIDEO</button>
   </section>
 
-  <!-- ============ SELECT ============ -->
-  <section class="screen v2" id="s-select">
-    <img class="abs" src="assets/img/logo.png" style="left:415px;top:66px;width:250px" alt="hince">
-    <img class="abs pix fx-blink" src="assets/img/px/px_sparkle_w.svg" style="left:120px;top:96px;width:40px" alt="">
-    <img class="abs pix fx-blink d1" src="assets/img/px/px_sparkle_w.svg" style="left:920px;top:96px;width:40px" alt="">
-    <div class="abs center ttl pink" style="top:176px;font-size:88px">CHOOSE<br>YOUR GAME</div>
-    <!-- v2.2: each card = ONE button (450x640, children in card coords). app.js layoutSelect() shows only selectable games
-         (Admin "Bật/tắt game" + module loaded) and sets left/top from the count (4 = 2x2, 3, 2 = one row, 1 = centred). -->
-    <button class="game-card fx-winopen" data-game="umpah" style="left:70px;top:452px">
-      <span class="abs win gc-win"><span class="bar"><span>UM-PAH-1.EXE</span><span class="ico"><i class="u"></i><i class="sq"></i>×</span></span></span>
-      <!-- v2.3: memory game art (mockup_v23 ?s=select): packshot 06 + mini back card (8-bit tube) + mini face card NU ROSE -->
-      <img class="abs prod" src="assets/img/products/nu_blur_tint/06_nu_rose.png" style="left:34px;top:44px;height:262px;transform:rotate(-8deg)" alt="">
-      <span class="mc back mini" style="left:150px;top:78px;transform:rotate(-7deg)"><img class="tube" src="assets/img/px/tube/px_tube_06_nu_rose.png" alt=""><img class="sp" src="assets/img/px/px_sparkle_w.svg" style="left:16px;top:30px" alt=""><img class="lg" src="assets/img/logo.png" alt=""></span>
-      <span class="mc face mini" style="left:278px;top:62px;transform:rotate(8deg)"><img src="assets/img/lips_photo/06_nu_rose.jpg" alt=""><span>NU ROSE</span></span>
-      <img class="abs glow" src="assets/img/3d/sparkle_butter.png" style="left:362px;top:30px;width:66px" alt="">
-      <span class="abs ttl pink gc-ttl">UM-<br>PAH!</span>
-      <span class="abs lvl">1</span>
-      <span class="abs vn gc-sub">Nu Blur Tint</span>
-      <span class="abs btn gc-play">PLAY <svg class="tri" viewBox="0 0 10 12"><path d="M0 0h2v1h2v1h2v1h2v1h2v4H8v1H6v1H4v1H2v1H0z"/></svg></span>
-    </button>
-    <button class="game-card fx-winopen" data-game="umpah2" style="left:560px;top:452px">
-      <span class="abs win gc-win"><span class="bar"><span>UM-PAH-2.EXE</span><span class="ico"><i class="u"></i><i class="sq"></i>×</span></span></span>
-      <span class="abs gc-pol"><img src="assets/img/lips_photo/06_nu_rose.jpg" alt=""></span>
-      <img class="abs prod" src="assets/img/products/nu_blur_tint/06_nu_rose.png" style="left:300px;top:96px;height:230px;transform:rotate(-24deg)" alt="">
-      <img class="abs pix" src="assets/img/px/px_arrow_up.svg" style="left:262px;top:214px;width:42px;transform:rotate(-60deg)" alt="">
-      <span class="abs fx-float d2" style="left:330px;top:40px"><img src="assets/img/3d/heart_pink.png" style="width:84px;transform:rotate(12deg)" alt=""></span>
-      <span class="abs ttl pink gc-ttl">UM-<br>PAH!</span>
-      <span class="abs lvl">2</span>
-      <span class="abs vn gc-sub">Nu Blur Tint</span>
-      <span class="abs btn gc-play">PLAY <svg class="tri" viewBox="0 0 10 12"><path d="M0 0h2v1h2v1h2v1h2v1h2v4H8v1H6v1H4v1H2v1H0z"/></svg></span>
-    </button>
-    <button class="game-card fx-winopen" data-game="taptap" style="left:70px;top:1142px">
-      <span class="abs win lil gc-win"><span class="bar"><span>TAP-TAP-1.EXE</span><span class="ico"><i class="u"></i><i class="sq"></i>×</span></span></span>
-      <img class="abs prod" src="assets/img/products/radiance_balm/gleaming.png" style="left:118px;top:72px;height:225px;transform:rotate(-12deg)" alt="">
-      <img class="abs prod" src="assets/img/products/radiance_balm/shelly_pink.png" style="left:180px;top:50px;height:245px" alt="">
-      <img class="abs prod" src="assets/img/products/radiance_balm/lil_mauve.png" style="left:244px;top:72px;height:225px;transform:rotate(12deg)" alt="">
-      <span class="abs fx-float d3" style="left:40px;top:200px"><img class="glow" src="assets/img/3d/pearl_orb.png" style="width:100px" alt=""></span>
-      <span class="abs ttl lil gc-ttl">TAP-<br>TAP!</span>
-      <span class="abs lvl lil">1</span>
-      <span class="abs vn gc-sub">Radiance Balm</span>
-      <span class="abs btn lil gc-play">PLAY <svg class="tri" viewBox="0 0 10 12"><path d="M0 0h2v1h2v1h2v1h2v1h2v4H8v1H6v1H4v1H2v1H0z"/></svg></span>
-    </button>
-    <button class="game-card fx-winopen" data-game="taptap2" style="left:560px;top:1142px">
-      <span class="abs win lil gc-win"><span class="bar"><span>TAP-TAP-2.EXE</span><span class="ico"><i class="u"></i><i class="sq"></i>×</span></span></span>
-      <span class="abs gc-cable"></span>
-      <img class="abs prod" src="assets/img/products/radiance_balm/shelly_pink.png" style="left:192px;top:110px;height:200px" alt="">
-      <img class="abs pix" src="assets/img/px/px_claw_closed.svg" style="left:153px;top:84px;width:144px" alt="">
-      <span class="abs fx-float" style="left:330px;top:150px"><img class="glow" src="assets/img/3d/star_lilac.png" style="width:96px;transform:rotate(10deg)" alt=""></span>
-      <span class="abs fx-float d1" style="left:40px;top:120px"><img class="glow" src="assets/img/3d/sparkle_butter.png" style="width:80px" alt=""></span>
-      <span class="abs ttl lil gc-ttl">TAP-<br>TAP!</span>
-      <span class="abs lvl lil">2</span>
-      <span class="abs vn gc-sub">Radiance Balm</span>
-      <span class="abs btn lil gc-play">PLAY <svg class="tri" viewBox="0 0 10 12"><path d="M0 0h2v1h2v1h2v1h2v1h2v4H8v1H6v1H4v1H2v1H0z"/></svg></span>
-    </button>
-  </section>
+  <!-- ============ SELECT: v2.6 merged into ATTRACT (kept empty in the DOM; show('select') routes to attract) ============ -->
+  <section class="screen v2" id="s-select"></section>
 
-  <!-- ============ INTRO (v2.4 A: 3D product reveal between SELECT and READY) ============ -->
-  <!-- app.js toIntro(): .lilac for Tap-Tap!, one of the two preloaded videos (1:1, 810x1080), end PNG = fallback, then toReady() -->
+  <!-- ============ INTRO (v2.4 A, v2.6 paper): label + tape, the video box (no frame), title strip covering the video's bottom edge ============ -->
+  <!-- app.js toIntro(): one of the two preloaded videos (1:1, 810x1080), end PNG = fallback, then toReady() -->
   <section class="screen v2" id="s-intro">
-    <img class="abs" src="assets/img/logo.png" style="left:415px;top:80px;width:250px" alt="hince">
-    <div class="abs in-chip"><span id="intro-chip">NU BLUR TINT</span></div>
+    <div class="abs paper in-lab"><img src="assets/img/logo.png" alt="hince"><div class="eyebrow" id="intro-chip">NU BLUR TINT</div></div>
+    <div class="tape" style="left:416px;top:70px;transform:rotate(3deg)"></div>
     <div class="abs in-box">
       <video class="in-vid" id="intro-nb" muted playsinline preload="auto" poster="assets/video/reveal/reveal_nublur_end.png"></video>
       <video class="in-vid" id="intro-rb" muted playsinline preload="auto" poster="assets/video/reveal/reveal_balm_end.png"></video>
       <img class="in-end" id="intro-end" src="assets/video/reveal/reveal_nublur_end.png" alt="">
     </div>
-    <div class="abs center in-title" id="intro-title"></div>
-    <div class="abs center vn in-skip"><span data-i18n="intro.skip"></span><svg viewBox="0 0 12 8"><path d="M0 0h1v1h1v1h1v1h1v2H3v1H2v1H1v1H0zM6 0h1v1h1v1h1v1h1v2H9v1H8v1H7v1H6z"/></svg></div>
+    <div class="abs paper in-strip"><div class="in-title" id="intro-title"></div></div>
+    <div class="tape" style="left:60px;top:1274px;width:200px;transform:rotate(-28deg)"></div><div class="tape" style="left:820px;top:1288px;width:200px;transform:rotate(24deg)"></div>
+    <img class="st" src="assets/v26/stickers/p_sparkle.svg" style="left:850px;top:300px;width:100px;transform:rotate(12deg)" alt="">
+    <div class="abs center in-skip"><span data-i18n="intro.skip"></span> ››</div>
     <div class="in-flash" id="intro-flash"></div>
   </section>
 
-  <!-- ============ READY (icon story + 3·2·1, auto-start) ============ -->
-  <!-- app.js toReady(): data-story (registry story class) shows .rd-up / .rd-tt / .rd-kk / .rd-gg, .lilac + .win.lil for the lilac world,
-       #ready-title + the 2.4 s flash in #ready-count = title + number badge (readyPair), #ready-count runs the timeline -->
+  <!-- ============ READY (v2.6 spiral notebook: eyebrow, title + badge, product line, 3 numbered cells; cocoa 3·2·1 circle) ============ -->
+  <!-- app.js toReady(): data-story (registry story class) shows one .rd-grid; #ready-title / the 2.4 s flash in #ready-count = title + number badge (readyPair) -->
   <section class="screen v2" id="s-ready" data-game="umpah" data-story="rd-up">
-    <img class="abs" src="assets/img/logo.png" style="left:415px;top:80px;width:250px" alt="hince">
-    <img class="abs pix fx-blink" src="assets/img/px/px_sparkle_w.svg" style="left:120px;top:110px;width:40px" alt="">
-    <img class="abs pix fx-blink d1" src="assets/img/px/px_sparkle_w.svg" style="left:920px;top:110px;width:40px" alt="">
-    <div class="abs center rd-title" id="ready-title"></div>
-    <div class="abs win fx-winopen" id="ready-win" style="left:120px;top:560px;width:840px;height:820px"><div class="bar"><span>HOW TO.EXE</span><span class="ico"><i class="u"></i><i class="sq"></i>×</span></div></div>
-    <div class="abs fx-float d1 rd-spk" style="left:840px;top:650px"><img class="glow" src="assets/img/3d/sparkle_butter.png" style="width:90px" alt=""></div>
-    <!-- v2.3 Um-Pah! 1 (memory): two NU ROSE face cards, the hand taps the left one: LẬT 2 Ô ▶ UM-PAH! -->
-    <div class="rd-up fx-winopen">
-      <div class="mc face" style="left:200px;top:700px;transform:rotate(-6deg)"><img src="assets/img/lips_photo/06_nu_rose.jpg" alt=""><span>NU ROSE</span></div>
-      <div class="mc face" style="left:650px;top:700px;transform:rotate(6deg)"><img src="assets/img/lips_photo/06_nu_rose.jpg" alt=""><span>NU ROSE</span></div>
-      <div class="abs fx-tap" style="left:300px;top:880px;will-change:transform"><img class="pix" src="assets/img/px/px_hand.svg" style="width:120px" alt=""></div>
-      <div class="abs ttl vnt" style="left:190px;top:1060px;font-size:72px" data-i18n="ready.memo.label"></div>
-      <svg class="abs tri fx-blink" viewBox="0 0 10 12" style="left:470px;top:1078px;width:44px;height:52px;color:var(--hot)"><path d="M0 0h2v1h2v1h2v1h2v1h2v4H8v1H6v1H4v1H2v1H0z"/></svg>
-      <div class="abs ttl pink" style="left:540px;top:1070px;font-size:60px">UM-PAH!</div>
-      <div class="abs center vn" style="top:1240px;font-size:56px" data-i18n="ready.memo.line"></div>
-    </div>
-    <div class="rd-tt fx-winopen">
-      <div class="abs rd-pad"></div>
-      <div class="abs rd-tile"><img src="assets/img/products/radiance_balm/shelly_pink.png" alt=""></div>
-      <div class="abs fx-tap" style="left:350px;top:840px"><img class="pix" src="assets/img/px/px_hand.svg" style="width:120px" alt=""></div>
-      <div class="abs ttl vnt rd-lbl" style="left:230px" data-i18n="ready.tap.label"></div>
-      <svg class="abs tri fx-blink rd-tri" viewBox="0 0 10 12"><path d="M0 0h2v1h2v1h2v1h2v1h2v4H8v1H6v1H4v1H2v1H0z"/></svg>
-      <div class="abs rd-gold"><img class="glow" src="assets/img/3d/star_chrome.png" alt=""><span>TAP-TAP</span></div>
-      <div class="abs ttl vnt rd-lbl x2" style="left:630px">x2</div>
-      <div class="abs center vn rd-line" data-i18n="ready.tap.gold"></div>
-    </div>
-    <!-- v2.2 Um-Pah! 2: the hand drags the tube up (.rd-drag) → lip photo polaroid (06 Nu Rose, colour reference: no filter) -->
-    <div class="rd-kk fx-winopen">
-      <img class="abs pix fx-blink" src="assets/img/px/px_arrow_up.svg" style="left:322px;top:624px;width:56px" alt="">
-      <div class="abs rd-drag">
-        <img class="abs prod" src="assets/img/products/nu_blur_tint/06_nu_rose.png" style="left:320px;top:740px;height:250px" alt="">
-        <img class="abs pix" src="assets/img/px/px_hand.svg" style="left:318px;top:880px;width:120px" alt="">
+    <div class="abs paper rd-book" id="ready-win">
+      <svg class="rd-spiral" viewBox="0 0 940 80"><g fill="none" stroke="#4C362B" stroke-width="7" stroke-linecap="round"><path d="M44 52C44 16 64 4 64 30v10M104 52c0-36 20-48 20-22v10M164 52c0-36 20-48 20-22v10M224 52c0-36 20-48 20-22v10M284 52c0-36 20-48 20-22v10M344 52c0-36 20-48 20-22v10M404 52c0-36 20-48 20-22v10M464 52c0-36 20-48 20-22v10M524 52c0-36 20-48 20-22v10M584 52c0-36 20-48 20-22v10M644 52c0-36 20-48 20-22v10M704 52c0-36 20-48 20-22v10M764 52c0-36 20-48 20-22v10M824 52c0-36 20-48 20-22v10M884 52c0-36 20-48 20-22v10"/></g><g fill="#DCCBC0"><circle cx="48" cy="52" r="9"/><circle cx="108" cy="52" r="9"/><circle cx="168" cy="52" r="9"/><circle cx="228" cy="52" r="9"/><circle cx="288" cy="52" r="9"/><circle cx="348" cy="52" r="9"/><circle cx="408" cy="52" r="9"/><circle cx="468" cy="52" r="9"/><circle cx="528" cy="52" r="9"/><circle cx="588" cy="52" r="9"/><circle cx="648" cy="52" r="9"/><circle cx="708" cy="52" r="9"/><circle cx="768" cy="52" r="9"/><circle cx="828" cy="52" r="9"/><circle cx="888" cy="52" r="9"/></g></svg>
+      <div class="rd-hd">
+        <div class="rd-eb" data-i18n="ready.eyebrow"></div>
+        <div class="rd-title" id="ready-title"></div>
+        <div class="rd-prod" id="ready-prod">Nu Blur Tint</div>
       </div>
-      <div class="abs ttl vnt rd-lbl" style="left:230px" data-i18n="ready.kiss.label"></div>
-      <svg class="abs tri fx-blink rd-tri" viewBox="0 0 10 12"><path d="M0 0h2v1h2v1h2v1h2v1h2v4H8v1H6v1H4v1H2v1H0z"/></svg>
-      <div class="abs fx-breathe" style="left:605px;top:740px;width:250px;height:200px;will-change:transform"><span class="abs rd-pol"><img src="assets/img/lips_photo/06_nu_rose.jpg" alt=""></span></div>
-      <div class="abs ttl pink rd-lbl en" style="left:550px">UM-PAH!</div>
-      <div class="abs center vn rd-line" data-i18n="ready.kiss.line"></div>
-    </div>
-    <!-- v2.2 Tap-Tap! 2: the hand taps under the open claw → the closed claw lifts the balm (.rd-lift) -->
-    <div class="rd-gg fx-winopen">
-      <div class="abs rd-cable" style="left:346px;top:620px;height:70px"></div>
-      <img class="abs pix" src="assets/img/px/px_claw_open.svg" style="left:278px;top:680px;width:144px" alt="">
-      <img class="abs prod" src="assets/img/products/radiance_balm/shelly_pink.png" style="left:321px;top:800px;height:200px" alt="">
-      <div class="abs fx-tap" style="left:362px;top:860px;will-change:transform"><img class="pix" src="assets/img/px/px_hand.svg" style="width:120px" alt=""></div>
-      <div class="abs ttl vnt rd-lbl" style="left:230px" data-i18n="ready.tap.label"></div>
-      <svg class="abs tri fx-blink rd-tri" viewBox="0 0 10 12"><path d="M0 0h2v1h2v1h2v1h2v1h2v4H8v1H6v1H4v1H2v1H0z"/></svg>
-      <div class="abs rd-lift">
-        <div class="abs rd-cable" style="left:726px;top:640px;height:56px"></div>
-        <img class="abs prod" src="assets/img/products/radiance_balm/shelly_pink.png" style="left:701px;top:716px;height:200px" alt="">
-        <img class="abs pix" src="assets/img/px/px_claw_closed.svg" style="left:658px;top:690px;width:144px" alt="">
+      <!-- Um-Pah! 1 (memory) -->
+      <div class="rd-grid rd-up">
+        <div class="cell"><span class="n">01</span>
+          <div class="cf" style="left:20px;top:80px;width:170px;transform:rotate(-8deg)"><div class="ph" style="background-image:url(assets/img/lips_photo/06_nu_rose.jpg)"></div><div class="cap">06 NU ROSE</div></div>
+          <div class="cf" style="left:76px;top:150px;width:170px;transform:rotate(7deg)"><div class="ph" style="background-image:url(assets/img/lips_photo/08_wild.jpg)"></div><div class="cap">08 WILD</div></div>
+          <div class="tx"><b data-i18n="memo.peek"></b></div></div>
+        <div class="cell"><span class="n">02</span>
+          <div class="cb" style="left:16px;top:96px;width:140px;height:190px;transform:rotate(-6deg)"><div class="in"></div><img src="assets/img/products/nu_blur_tint/06_nu_rose.png" alt=""><div class="w" style="font-size:18px">hince</div></div>
+          <div class="cf" style="left:100px;top:120px;width:150px;transform:rotate(6deg)"><div class="ph" style="background-image:url(assets/img/lips_photo/06_nu_rose.jpg)"></div><div class="cap" style="font-size:15px">06 NU ROSE</div></div>
+          <img class="st" src="assets/v26/stickers/p_sparkle.svg" style="left:196px;top:82px;width:60px" alt="">
+          <div class="tx"><b data-i18n="ready.memo.label"></b><span data-i18n="memo.hint"></span></div></div>
+        <div class="cell"><span class="n">03</span>
+          <div class="cf" style="left:18px;top:86px;width:140px;transform:rotate(-5deg)"><div class="ph" style="background-image:url(assets/img/lips_photo/06_nu_rose.jpg)"></div><div class="cap" style="font-size:15px">06 NU ROSE</div></div>
+          <div class="cf" style="left:104px;top:100px;width:140px;transform:rotate(5deg)"><div class="ph" style="background-image:url(assets/img/lips_photo/06_nu_rose.jpg)"></div><div class="cap" style="font-size:15px">06 NU ROSE</div></div>
+          <div class="stamp" style="left:30px;top:270px;transform:rotate(-10deg);font-size:46px">Um-Pah!</div>
+          <div class="tx"><b>Um-Pah!</b></div></div>
       </div>
-      <div class="abs ttl vnt rd-lbl hl" style="left:610px" data-i18n="ready.grab.label"></div>
-      <div class="abs center vn rd-line" data-i18n="ready.grab.line"></div>
+      <!-- Tap-Tap! 1 (rhythm): balm slides onto the cap pad, gold balm = 2 taps -->
+      <div class="rd-grid rd-tt">
+        <div class="cell"><span class="n">01</span>
+          <img class="rd-pad" src="assets/v26/tap/cap_pad.png" alt="">
+          <div class="rd-tile"><img class="prod" src="assets/img/products/radiance_balm/shelly_pink.png" alt=""></div>
+          <div class="tx"><b data-i18n="ready.tap.label"></b></div></div>
+        <div class="cell"><span class="n">02</span>
+          <div class="rd-halo"></div><div class="rd-gold"><img class="prod" src="assets/img/products/radiance_balm/gleaming.png" alt=""></div><div class="rd-x2">×2</div>
+          <div class="tx"><b>×2</b><span data-i18n="ready.tap.gold"></span></div></div>
+        <div class="cell"><span class="n">03</span>
+          <img class="st" src="assets/v26/stickers/p_star.svg" style="left:96px;top:110px;width:70px" alt="">
+          <div class="stamp tp" style="left:28px;top:220px;transform:rotate(-8deg);font-size:54px">Perfect!</div>
+          <div class="tx"><b>Perfect!</b></div></div>
+      </div>
+      <!-- Um-Pah! 2 (kiss): drag the tube up onto the lips polaroid -->
+      <div class="rd-grid rd-kk">
+        <div class="cell"><span class="n">01</span>
+          <div class="rd-drag"><img class="prod" src="assets/img/products/nu_blur_tint/06_nu_rose.png" alt=""></div>
+          <div class="tx"><b data-i18n="ready.kiss.label"></b></div></div>
+        <div class="cell"><span class="n">02</span>
+          <div class="cf" style="left:24px;top:96px;width:210px;transform:rotate(-4deg)"><div class="ph" style="background-image:url(assets/img/lips_photo/06_nu_rose.jpg)"></div><div class="cap">06 NU ROSE</div></div>
+          <div class="tx"><span data-i18n="ready.kiss.line"></span></div></div>
+        <div class="cell"><span class="n">03</span>
+          <img class="st" src="assets/v26/stickers/p_heart.svg" style="left:120px;top:110px;width:90px;transform:rotate(12deg)" alt="">
+          <div class="stamp" style="left:30px;top:220px;transform:rotate(-10deg);font-size:54px">Um-Pah!</div>
+          <div class="tx"><b>Um-Pah!</b></div></div>
+      </div>
+      <!-- Tap-Tap! 2 (claw): tap → the claw closes and lifts the balm -->
+      <div class="rd-grid rd-gg">
+        <div class="cell"><span class="n">01</span>
+          <img class="rd-head" src="assets/v26/claw/claw_head_open.png" alt="">
+          <img class="prod rd-balm" src="assets/img/products/radiance_balm/shelly_pink.png" alt="">
+          <div class="tx"><b data-i18n="ready.tap.label"></b></div></div>
+        <div class="cell"><span class="n">02</span>
+          <div class="rd-lift"><img class="rd-head" src="assets/v26/claw/claw_head_closed.png" alt=""><img class="prod rd-balm" src="assets/img/products/radiance_balm/shelly_pink.png" alt=""></div>
+          <div class="tx"><b data-i18n="ready.grab.label"></b><span data-i18n="ready.grab.line"></span></div></div>
+        <div class="cell"><span class="n">03</span>
+          <div class="rd-trays"><i><img src="assets/v26/heads/head_shelly_pink.png" alt=""></i><i><img src="assets/v26/heads/head_gleaming.png" alt=""></i><i></i></div>
+          <div class="tx"><b>3/7</b></div></div>
+      </div>
     </div>
+    <img class="st" src="assets/v26/stickers/p_lips.svg" style="left:846px;top:166px;width:170px;transform:rotate(14deg)" alt="">
+    <img class="st" src="assets/v26/stickers/p_heart.svg" style="left:44px;top:1356px;width:120px;transform:rotate(-12deg)" alt="">
     <div class="abs center ttl rd-count" id="ready-count"></div>
+    <div class="abs center rd-cap" data-i18n="ready.count"></div>
   </section>
 
-  <!-- ============ UM-PAH! 1 GAME (v2.3 "Lật Cặp Môi", mockup_v23 ?s=memo|memo_hit) ============ -->
-  <!-- umpah1.js builds 16 .m-card[data-i] (index = row*4 + col; hit area = card + 8 px) and 8 progress lips.
+  <!-- ============ UM-PAH! 1 GAME (v2.3 "Lật Cặp Môi", v2.6 paper: card back .cb, face = polaroid .cf) ============ -->
+  <!-- umpah1.js builds 16 .m-card[data-i] (index = row*4 + col; hit area = card + 8 px) and 8 progress p_lips stickers.
        #s-umpah[data-st] = peek | ready (taps accepted, timer runs) | anim | over | off. Lip photos: no filter ever. -->
   <section class="screen v2" id="s-umpah" data-st="off">
-    <div class="abs win" style="left:70px;top:60px;width:440px;height:170px"><div class="bar"><span>SCORE</span><span class="ico">×</span></div><div class="m-num" id="m-score">0</div></div>
-    <div class="abs m-time"><span class="chip">TIME <span id="m-time">45</span></span><div class="seg" id="m-seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div></div>
+    <div class="hud paper" style="left:40px;transform:rotate(-1.5deg)"><div class="k" data-i18n="hud.score"></div><div class="v" id="m-score">0</div></div>
+    <div class="tape" style="left:110px;top:24px;width:150px;height:40px;transform:rotate(-6deg)"></div>
+    <div class="hud paper" style="left:740px;transform:rotate(1.2deg)"><div class="k" data-i18n="hud.time"></div><div class="v" id="m-time">0:45</div><div class="seg pb" id="m-seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div></div>
+    <div class="tape" style="left:820px;top:26px;width:150px;height:40px;transform:rotate(5deg)"></div>
     <div class="abs m-prog" id="m-prog"></div>
     <div id="m-grid"></div>
-    <div class="abs center vn m-line" id="m-line" data-i18n="memo.peek"></div>
-    <div class="abs center ttl pink m-combo" id="m-combo"></div>
-    <div class="abs fx-float d1 m-deco" style="left:70px;top:1730px"><img class="glow" src="assets/img/3d/star_pink.png" style="width:110px" alt=""></div>
-    <div class="abs fx-float d2 m-deco" style="left:900px;top:1740px"><img class="glow" src="assets/img/3d/sparkle_butter.png" style="width:90px" alt=""></div>
+    <div class="abs paper hint disp it m-hint" id="m-line" data-i18n="memo.peek"></div>
+    <div class="abs center m-combo" id="m-combo"></div>
     <div class="m-fx">
-      <!-- sparkle burst, one group per matched card (umpah1.js moves the group onto the card centre and sets .go) -->
-      <div class="up-burst" id="m-burst-a"><div class="abs" style="left:-150px;top:-120px;--dx:-120px;--dy:-90px"><img class="glow" src="assets/img/3d/star_pink.png" style="width:110px" alt=""></div><div class="abs" style="left:40px;top:-150px;--dx:110px;--dy:-100px"><img class="glow" src="assets/img/3d/sparkle_butter.png" style="width:90px" alt=""></div><div class="abs" style="left:-40px;top:90px;--dx:-30px;--dy:120px"><img class="glow" src="assets/img/3d/sparkle_pearl.png" style="width:70px" alt=""></div></div>
-      <div class="up-burst" id="m-burst-b"><div class="abs" style="left:40px;top:-130px;--dx:120px;--dy:-90px"><img class="glow" src="assets/img/3d/star_butter.png" style="width:100px" alt=""></div><div class="abs" style="left:-140px;top:-40px;--dx:-120px;--dy:-30px"><img class="glow" src="assets/img/3d/sparkle_chrome.png" style="width:80px" alt=""></div><div class="abs" style="left:30px;top:90px;--dx:80px;--dy:110px"><img class="glow" src="assets/img/3d/sparkle_pearl.png" style="width:70px" alt=""></div></div>
-      <!-- match / CLEAR! / TIME UP! banner: full-width paper band, title + sub line -->
-      <div class="m-band" id="m-band"><div class="abs center ttl pink m-band-t" id="m-band-t">UM-PAH!</div><div class="abs center ttl m-band-s" id="m-band-s"></div></div>
+      <!-- sticker burst, one group per matched card (umpah1.js moves the group onto the card centre and sets .go) -->
+      <div class="up-burst" id="m-burst-a"><div class="abs" style="left:-150px;top:-120px;--dx:-120px;--dy:-90px"><img src="assets/v26/stickers/p_heart.svg" style="width:96px" alt=""></div><div class="abs" style="left:40px;top:-150px;--dx:110px;--dy:-100px"><img src="assets/v26/stickers/p_sparkle.svg" style="width:84px" alt=""></div><div class="abs" style="left:-40px;top:90px;--dx:-30px;--dy:120px"><img src="assets/v26/stickers/p_star.svg" style="width:64px" alt=""></div></div>
+      <div class="up-burst" id="m-burst-b"><div class="abs" style="left:40px;top:-130px;--dx:120px;--dy:-90px"><img src="assets/v26/stickers/p_sparkle.svg" style="width:90px" alt=""></div><div class="abs" style="left:-140px;top:-40px;--dx:-120px;--dy:-30px"><img src="assets/v26/stickers/p_heart.svg" style="width:76px" alt=""></div><div class="abs" style="left:30px;top:90px;--dx:80px;--dy:110px"><img src="assets/v26/stickers/p_star.svg" style="width:64px" alt=""></div></div>
+      <!-- match stamp Um-Pah! + points (mono azalea-deep); CLEAR! / TIME UP! use the same stamp -->
+      <div class="m-band" id="m-band"><div class="stamp m-band-t" id="m-band-t">Um-Pah!</div><div class="m-band-s" id="m-band-s"></div></div>
     </div>
   </section>
 
@@ -203,198 +175,205 @@
   <!-- canvas = lanes, tiles, FX (taptap.js); HUD on top ignores pointers (CSS) so every tap reaches the canvas -->
   <section class="screen v2 lilac" id="s-taptap">
     <canvas id="tt-canvas" width="1080" height="1920"></canvas>
-    <div class="abs win lil" style="left:60px;top:60px;width:430px;height:160px"><div class="bar"><span>SCORE</span><span class="ico">×</span></div><div class="tt-num" id="tt-score">0</div></div>
-    <div class="abs tt-time"><div class="chip">TIME <span id="tt-time">30</span></div><div class="seg lil" id="tt-seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div></div>
-    <div class="abs center ttl lil tt-combo" id="tt-combo"></div>
+    <div class="hud paper" style="left:40px;transform:rotate(-1.5deg)"><div class="k" data-i18n="hud.score"></div><div class="v" id="tt-score">0</div></div>
+    <div class="tape" style="left:110px;top:24px;width:150px;height:40px;transform:rotate(-6deg)"></div>
+    <div class="hud paper" style="left:740px;transform:rotate(1.2deg)"><div class="k" data-i18n="hud.time"></div><div class="v" id="tt-time">0:30</div><div class="seg pb" id="tt-seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div></div>
+    <div class="tape" style="left:820px;top:26px;width:150px;height:40px;transform:rotate(5deg)"></div>
+    <div class="abs paper tt-combo" id="tt-combo-box"><div class="k" data-i18n="hud.combo"></div><div class="v" id="tt-combo"></div></div>
+    <div class="tape tt-combo-tape" style="left:470px;top:40px;width:140px;height:38px;transform:rotate(3deg)"></div>
+    <div class="abs paper hint tt-hint"><img src="assets/v26/stickers/p_star.svg" alt=""><span class="disp it" data-i18n="ready.tap.gold" data-fit></span></div>
   </section>
 
-  <!-- ============ UM-PAH! 2 GAME (v2.2, mockup_v22 ?s=kiss|kiss_hit) ============ -->
+  <!-- ============ UM-PAH! 2 GAME (v2.2, v2.6 paper: target polaroid, tubes on a paper shelf, mono tags) ============ -->
   <!-- umpah2.js: drag (or tap) a .u2-tube[data-shade] onto the photo; #s-umpah2[data-st] = ready | anim | over | off.
-       The lip photos are colour references: no filter on them ever. -->
+       The lip photos are colour references: no filter on them ever. .u2-ped = the mono tag under each tube (ghost while lifted) -->
   <section class="screen v2" id="s-umpah2" data-st="off">
-    <div class="abs win" style="left:70px;top:60px;width:440px;height:170px"><div class="bar"><span>SCORE</span><span class="ico">×</span></div><div class="u2-num" id="u2-score">0</div></div>
-    <div class="abs u2-time"><span class="chip">TIME <span id="u2-time">30</span></span><div class="seg" id="u2-seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div></div>
-    <div class="abs u2-prog" id="u2-prog"></div><!-- 10 mini matte lips, built by umpah2.js -->
-    <div class="abs win u2-photo" id="u2-photo"><div class="bar"><span>LIPS.JPG</span><span class="ico"><i class="u"></i><i class="sq"></i>×</span></div><img class="ph" src="assets/img/lips_photo/06_nu_rose.jpg" alt=""><img class="ph" src="assets/img/lips_photo/06_nu_rose.jpg" alt=""></div>
-    <div class="abs center ttl pink u2-name" id="u2-name"></div>
-    <div class="abs u2-ped" style="left:145px"></div><div class="abs u2-ped" style="left:435px"></div><div class="abs u2-ped" style="left:725px"></div>
+    <div class="hud paper" style="left:40px;transform:rotate(-1.5deg)"><div class="k" data-i18n="hud.score"></div><div class="v" id="u2-score">0</div></div>
+    <div class="tape" style="left:110px;top:24px;width:150px;height:40px;transform:rotate(-6deg)"></div>
+    <div class="hud paper" style="left:740px;transform:rotate(1.2deg)"><div class="k" data-i18n="hud.time"></div><div class="v" id="u2-time">0:30</div><div class="seg pb" id="u2-seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div></div>
+    <div class="tape" style="left:820px;top:26px;width:150px;height:40px;transform:rotate(5deg)"></div>
+    <div class="abs u2-prog" id="u2-prog"></div><!-- 10 p_lips stickers, built by umpah2.js -->
+    <div class="abs u2-photo" id="u2-photo"><div class="cap" data-i18n="kiss.caption" data-fit></div><div class="phw"><img class="ph" src="assets/img/lips_photo/06_nu_rose.jpg" alt=""><img class="ph" src="assets/img/lips_photo/06_nu_rose.jpg" alt=""></div></div>
+    <div class="tape" style="left:56px;top:300px;width:200px;transform:rotate(-40deg)"></div><div class="tape" style="left:826px;top:300px;width:200px;transform:rotate(36deg)"></div>
+    <svg class="abs u2-path" width="120" height="260" viewBox="0 0 120 260"><path d="M70 250 C 78 170 66 90 44 24" fill="none" stroke="#FBF4EC" stroke-width="6" stroke-dasharray="4 16" stroke-linecap="round"/><path d="M22 50 L42 18 L66 44" fill="none" stroke="#FBF4EC" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="abs u2-shelf"></div>
+    <div class="abs center u2-name" id="u2-name"></div>
+    <div class="abs u2-ped" style="left:250px"></div><div class="abs u2-ped" style="left:540px"></div><div class="abs u2-ped" style="left:830px"></div>
     <div class="u2-tube" data-slot="0" style="left:250px"><img class="prod" src="assets/img/products/nu_blur_tint/01_near.png" alt=""></div>
     <div class="u2-tube" data-slot="1" style="left:540px"><img class="prod" src="assets/img/products/nu_blur_tint/02_dear.png" alt=""></div>
     <div class="u2-tube" data-slot="2" style="left:830px"><img class="prod" src="assets/img/products/nu_blur_tint/03_nu_allure.png" alt=""></div>
-    <div class="abs center vn u2-hint" id="u2-hint" data-i18n="ready.kiss.line"></div>
+    <img class="st" src="assets/v26/stickers/p_sparkle.svg" style="left:860px;top:860px;width:100px;transform:rotate(12deg)" alt="">
+    <div class="abs paper hint u2-hint" id="u2-hint"><span class="disp it" data-i18n="ready.kiss.line" data-fit></span></div>
     <div class="u2-fx">
       <div class="up-puff" id="u2-puff"></div>
-      <!-- hit burst around the kiss point (496,860): wrappers fly out along (--dx,--dy), glow on the static inner img -->
+      <!-- hit burst around the kiss point (502,755): wrappers fly out along (--dx,--dy) -->
       <div class="up-burst" id="u2-burst">
-        <div class="abs" style="left:330px;top:740px;--dx:-130px;--dy:-80px"><img class="glow" src="assets/img/3d/star_pink.png" style="width:110px" alt=""></div>
-        <div class="abs" style="left:620px;top:780px;--dx:140px;--dy:-40px"><img class="glow" src="assets/img/3d/sparkle_butter.png" style="width:90px" alt=""></div>
-        <div class="abs" style="left:420px;top:960px;--dx:-60px;--dy:120px"><img class="glow" src="assets/img/3d/sparkle_pearl.png" style="width:70px" alt=""></div>
-        <div class="abs" style="left:600px;top:960px;--dx:100px;--dy:110px"><img class="glow" src="assets/img/3d/sparkle_chrome.png" style="width:70px" alt=""></div>
+        <div class="abs" style="left:340px;top:640px;--dx:-130px;--dy:-80px"><img src="assets/v26/stickers/p_heart.svg" style="width:96px" alt=""></div>
+        <div class="abs" style="left:620px;top:680px;--dx:140px;--dy:-40px"><img src="assets/v26/stickers/p_sparkle.svg" style="width:90px" alt=""></div>
+        <div class="abs" style="left:420px;top:850px;--dx:-60px;--dy:120px"><img src="assets/v26/stickers/p_star.svg" style="width:64px" alt=""></div>
+        <div class="abs" style="left:600px;top:850px;--dx:100px;--dy:110px"><img src="assets/v26/stickers/p_lips.svg" style="width:70px" alt=""></div>
       </div>
-      <div class="abs u2-stamp" id="u2-stamp"><div class="ttl pink" id="u2-stamp-t">UM-PAH!</div></div>
-      <div class="abs u2-pts" id="u2-pts"><div class="ttl">+150</div></div>
-      <div class="abs u2-oops" id="u2-oops"><div class="ttl">OOPS</div></div>
-      <div class="abs center ttl pink u2-big" id="u2-big">TIME UP!</div>
+      <div class="abs u2-stamp" id="u2-stamp"><div class="stamp" id="u2-stamp-t">Um-Pah!</div></div>
+      <div class="abs u2-pts" id="u2-pts"><div class="mono">+150</div></div>
+      <div class="abs u2-oops" id="u2-oops"><div class="stamp">OOPS</div></div>
+      <div class="abs center u2-big" id="u2-big">TIME UP!</div>
     </div>
   </section>
 
-  <!-- ============ TAP-TAP! 2 GAME (v2.2, mockup_v22 ?s=grab|grab_hit) ============ -->
+  <!-- ============ TAP-TAP! 2 GAME (v2.2, v2.6 paper 08_taptap2: the same claw object with new parts on a paper-steel rail) ============ -->
   <!-- taptap2.js: a tap anywhere drops the claw (one per grab); per frame only #t2-rig moves (translateX).
-       #s-taptap2[data-st] = moving (a tap is accepted) | anim | over | off. Balms .t2-balm[data-balm] = ASSETS.RB index; slots, shadows, trays built by taptap2.js. -->
+       #s-taptap2[data-st] = moving (a tap is accepted) | anim | over | off. Balms .t2-balm[data-balm] = ASSETS.RB index; slots, trays built by taptap2.js.
+       The rig's children use canvas coords, x relative to the claw centre; anchors from design/v26_kit/geometry.json (taptap2). -->
   <section class="screen v2 lilac" id="s-taptap2" data-st="off">
-    <div class="abs win lil" style="left:70px;top:60px;width:440px;height:170px"><div class="bar"><span>SCORE</span><span class="ico">×</span></div><div class="t2-num" id="t2-score">0</div></div>
-    <div class="abs win lil" style="left:570px;top:60px;width:440px;height:170px"><div class="bar"><span>GRAB</span><span class="ico">×</span></div><div class="t2-num" id="t2-grab">1/7</div></div>
-    <div class="abs win lil t2-target" id="t2-target">
-      <img class="abs prod" id="t2-tgt-img" src="assets/img/products/radiance_balm/shelly_pink.png" alt="">
-      <span class="abs chip">TARGET</span>
-      <span class="abs t2-tgt-name" id="t2-tgt-name">SHELLY PINK</span>
-    </div>
-    <div class="abs win lil t2-cab"><div class="bar"><span>TAP-TAP-2.EXE</span><span class="ico"><i class="u"></i><i class="sq"></i>×</span></div></div>
-    <div class="abs t2-glass"><div class="refl" style="left:120px;width:46px"></div><div class="refl" style="left:196px;width:16px"></div></div>
-    <div class="t2-bulbs" id="t2-bulbs"></div>
+    <div class="hud paper" style="left:40px;width:260px;transform:rotate(-1.5deg)"><div class="k" data-i18n="hud.score"></div><div class="v t2-num" id="t2-score">0</div></div>
+    <div class="hud paper" style="left:780px;width:260px;transform:rotate(1.2deg)"><div class="k" data-i18n="hud.grab"></div><div class="v t2-num" id="t2-grab">1/7</div></div>
+    <div class="abs paper t2-target" id="t2-target"><div class="k" data-i18n="t2.target" data-fit></div><div class="n" id="t2-tgt-name">Shelly Pink</div><div class="sw"><img id="t2-tgt-img" src="assets/v26/heads/head_shelly_pink.png" alt=""></div></div>
+    <div class="tape" style="left:460px;top:26px;width:160px;height:42px;transform:rotate(2deg)"></div>
+    <!-- v2.4 cabinet parts: kept (JS touches them), hidden -->
+    <div class="t2-cab"></div><div class="t2-glass"></div><div class="t2-bulbs" id="t2-bulbs"></div><div class="t2-floor"></div><div id="t2-shads"></div>
     <div class="abs t2-rail"></div>
-    <div class="abs t2-floor"></div>
-    <div id="t2-shads"></div>
-    <div id="t2-trays"></div>
+    <div class="tape" style="left:44px;top:532px;width:120px;height:50px;transform:rotate(-14deg)"></div><div class="tape" style="left:918px;top:530px;width:120px;height:50px;transform:rotate(12deg)"></div>
     <div id="t2-balms"></div>
-    <!-- the claw stays inside the glass (clip); the rig's children use canvas coords, x relative to the claw centre -->
+    <div class="abs t2-shelf"></div>
+    <div class="abs center t2-sub" data-i18n="ready.grab.line"></div>
+    <div id="t2-trays"></div>
+    <img class="st" src="assets/v26/stickers/p_sparkle.svg" style="left:880px;top:700px;width:96px;transform:rotate(14deg)" alt="">
+    <!-- the claw is no longer clipped by a glass: .t2-clip = full stage -->
     <div class="abs t2-clip">
       <div class="t2-rig" id="t2-rig">
-        <div class="t2-speed" id="t2-speed"><i style="left:-180px;top:690px;width:60px"></i><i style="left:-220px;top:722px;width:90px"></i><i style="left:-170px;top:754px;width:44px"></i></div>
-        <div class="t2-carriage"></div>
+        <div class="t2-speed" id="t2-speed"></div>
+        <div class="t2-drop"></div>
         <div class="t2-cable" id="t2-cable"></div>
-        <div class="t2-claw" id="t2-claw"><img class="pix" src="assets/img/px/px_claw_open.svg" alt=""><img class="pix" src="assets/img/px/px_claw_closed.svg" alt=""></div>
+        <img class="t2-carriage" src="assets/v26/claw/claw_carriage.png" alt="">
+        <div class="t2-claw" id="t2-claw"><img src="assets/v26/claw/claw_head_open.png" alt=""><img src="assets/v26/claw/claw_head_closed.png" alt=""></div>
       </div>
     </div>
-    <!-- sparkle burst outside the glass clip: x relative to its translateX (claw x clamped by taptap2.js), canvas y -->
+    <!-- sticker burst: x relative to its translateX (claw x clamped by taptap2.js), canvas y -->
     <div class="abs up-burst" id="t2-burst" style="left:0;top:0;width:0">
-      <div class="abs" style="left:-210px;top:700px;--dx:-130px;--dy:-60px"><img class="glow" src="assets/img/3d/star_lilac.png" style="width:110px" alt=""></div>
-      <div class="abs" style="left:110px;top:660px;--dx:130px;--dy:-60px"><img class="glow" src="assets/img/3d/sparkle_butter.png" style="width:96px" alt=""></div>
-      <div class="abs" style="left:100px;top:860px;--dx:90px;--dy:100px"><img class="glow" src="assets/img/3d/sparkle_pearl.png" style="width:70px" alt=""></div>
-      <div class="abs" style="left:-170px;top:880px;--dx:-100px;--dy:100px"><img class="glow" src="assets/img/3d/sparkle_chrome.png" style="width:70px" alt=""></div>
+      <div class="abs" style="left:-210px;top:700px;--dx:-130px;--dy:-60px"><img src="assets/v26/stickers/p_star.svg" style="width:84px" alt=""></div>
+      <div class="abs" style="left:110px;top:660px;--dx:130px;--dy:-60px"><img src="assets/v26/stickers/p_sparkle.svg" style="width:96px" alt=""></div>
+      <div class="abs" style="left:100px;top:860px;--dx:90px;--dy:100px"><img src="assets/v26/stickers/p_heart.svg" style="width:70px" alt=""></div>
+      <div class="abs" style="left:-170px;top:880px;--dx:-100px;--dy:100px"><img src="assets/v26/stickers/p_sparkle.svg" style="width:64px" alt=""></div>
     </div>
-    <div class="abs t2-pts" id="t2-pts"><div class="ttl">+200</div></div>
-    <div class="abs center ttl lil t2-word" id="t2-word">GOT IT!</div>
-    <div class="abs btn vn lil t2-btn" data-i18n="ready.grab.label"></div>
+    <div class="abs t2-pts" id="t2-pts"><div class="mono">+200</div></div>
+    <div class="abs center t2-word" id="t2-word">GOT IT!</div>
+    <div class="abs paper hint t2-btn"><i class="tape"></i><span class="disp it" data-i18n="t2.go"></span></div>
   </section>
 
-  <!-- ============ RESULT ============ -->
-  <!-- app.js showResult(): #s-result[data-tier] picks .res-got (tier 1/2) or .res-close (no tier); count-up + 14-cell bar; threshold icons moved to their x -->
+  <!-- ============ RESULT (v2.6 09_result: taped sheet, big serif score, meter with 2 cocoa ticks, gift voucher when tier >= 1) ============ -->
+  <!-- app.js showResult(): #s-result[data-tier] picks .res-got (tier 1/2) or .res-close (no tier); count-up + 14-cell meter; ticks #res-ico1/2 at the thresholds (%) -->
   <section class="screen v2" id="s-result" data-tier="2">
-    <img class="abs" src="assets/img/logo.png" style="left:415px;top:80px;width:250px" alt="hince">
-    <img class="abs pix fx-blink" src="assets/img/px/px_sparkle_w.svg" style="left:120px;top:110px;width:40px" alt="">
-    <img class="abs pix fx-blink d1" src="assets/img/px/px_sparkle_w.svg" style="left:920px;top:110px;width:40px" alt="">
-    <div class="abs center ttl pink res-title" id="res-title">LEVEL 2<br>CLEAR!</div>
-    <div class="abs win res-win fx-winopen">
-      <div class="bar"><span>RESULT.EXE</span><span class="ico"><i class="u"></i><i class="sq"></i>×</span></div>
-      <div class="chip res-label">YOUR SCORE</div>
-      <div class="res-score" id="res-score">0</div>
-      <div class="seg res-seg" id="res-seg"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="abs paper res-sheet">
+      <div class="res-eb" id="res-eb"></div>
+      <div class="disp res-score" id="res-score">0</div>
+      <div class="res-of" id="res-of"></div>
+      <div class="res-meter"><div class="res-seg" id="res-seg"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="res-ico" id="res-ico1"><b></b><span id="res-ml1"></span></div><div class="res-ico" id="res-ico2"><b></b><span id="res-ml2"></span></div></div>
+      <div class="res-got">
+        <div class="disp it res-line" data-i18n="result.youGet" data-fit></div>
+        <div class="res-vch"><div class="stub"><img src="assets/v26/stickers/p_gift.svg" alt=""></div><div class="main"><div class="k" data-i18n="result.gift"></div><div class="disp it lv" id="res-tier" data-fit></div><div class="br">hince Pop-Up Store</div></div></div>
+      </div>
+      <div class="res-close">
+        <div class="disp it res-line" data-i18n="game.close" data-fit></div>
+        <div class="res-need" id="res-need" data-fit></div>
+      </div>
     </div>
-    <img class="abs pix res-ico" id="res-ico1" src="assets/img/px/px_gift.svg" style="width:90px" alt="">
-    <img class="abs pix res-ico" id="res-ico2" src="assets/img/px/px_crown.svg" style="width:100px;top:1020px" alt="">
-    <div class="abs fx-float" style="left:60px;top:500px"><img class="glow" src="assets/img/3d/star_chrome.png" style="width:170px;transform:rotate(-12deg)" alt=""></div>
-    <div class="abs fx-float d1" style="left:790px;top:420px"><img src="assets/img/3d/lips_v4/lips_06_nu_rose.png" style="width:240px;transform:rotate(14deg)" alt=""></div>
-    <div class="abs fx-float d2" style="left:900px;top:1130px"><img class="glow" src="assets/img/3d/sparkle_butter.png" style="width:110px" alt=""></div>
-    <div class="abs fx-float d3" style="left:120px;top:1150px"><img class="glow" src="assets/img/3d/star_butter.png" style="width:120px;transform:rotate(8deg)" alt=""></div>
-    <img class="abs prod" src="assets/img/products/nu_blur_tint/06_nu_rose.png" style="left:380px;top:1460px;height:230px;transform:rotate(-12deg)" alt="">
-    <img class="abs prod" src="assets/img/products/radiance_balm/shelly_pink.png" style="left:620px;top:1460px;height:220px;transform:rotate(12deg)" alt="">
-    <div class="res-got">
-      <div class="abs center vn res-line" data-i18n="result.youGet"></div>
-      <div class="abs center ttl vnt res-tier" id="res-tier" data-fit></div>
-    </div>
-    <div class="res-close">
-      <div class="abs center vn res-line" data-i18n="game.close"></div>
-      <div class="abs center vnt res-need" id="res-need" data-fit></div>
-    </div>
-    <button class="abs btn vn res-btn" id="res-next" data-action="form"><span data-fit></span><svg class="tri" viewBox="0 0 10 12"><path d="M0 0h2v1h2v1h2v1h2v1h2v4H8v1H6v1H4v1H2v1H0z"/></svg></button>
-    <button class="abs btn vn res-btn" id="res-skip" data-action="thanks-skip"><span data-i18n="result.end"></span><svg class="tri" viewBox="0 0 10 12"><path d="M0 0h2v1h2v1h2v1h2v1h2v4H8v1H6v1H4v1H2v1H0z"/></svg></button>
+    <div class="res-title" id="res-title"></div><!-- v2.4 title (JS writes it), not shown in v2.6 -->
+    <div class="tape res-gtape" style="left:200px;top:1060px;width:180px;height:50px;transform:rotate(-24deg)"></div>
+    <div class="tape" style="left:420px;top:170px;transform:rotate(-2deg)"></div>
+    <img class="st res-gst" src="assets/v26/stickers/p_sparkle.svg" style="left:800px;top:1040px;width:100px;transform:rotate(12deg)" alt="">
+    <img class="st" src="assets/v26/stickers/p_heart.svg" style="left:120px;top:1290px;width:96px;transform:rotate(-14deg)" alt="">
+    <button class="abs btn res-btn" id="res-next" data-action="form"><span data-fit></span><span class="ar">→</span></button>
+    <button class="abs btn res-btn" id="res-skip" data-action="thanks-skip"><span data-i18n="result.end"></span><span class="ar">→</span></button>
   </section>
 
-  <!-- ============ FORM ============ -->
+  <!-- ============ FORM (v2.6 10_form: paperclip clipboard, underlined fields, paper keyboard) ============ -->
   <!-- app.js renderKb()/renderForm(): keys .key[data-k] inside #kb, .focus/.bad on fields, .on on .consent rows -->
   <section class="screen v2" id="s-form">
-    <img class="abs" src="assets/img/logo.png" style="left:440px;top:60px;width:200px" alt="hince">
-    <div class="abs center ttl pink vnt fm-title" data-i18n="form.title"></div>
-    <div class="abs vn fm-label" style="top:290px" data-i18n="form.name"></div>
-    <div class="abs field" id="f-name" data-field="name" style="top:345px"><div id="f-name-val"></div></div>
-    <div class="abs vn fm-label" style="top:500px" data-i18n="form.phone"></div>
-    <div class="abs field" id="f-phone" data-field="phone" style="top:555px"><div id="f-phone-val"></div></div>
+    <div class="abs paper fm-board"></div>
+    <img class="abs fm-clip" src="assets/v26/paper/clip.svg" alt="">
+    <img class="st" src="assets/v26/stickers/p_bow.svg" style="left:860px;top:64px;width:150px;transform:rotate(12deg)" alt="">
+    <div class="abs fm-eb" id="fm-eb"></div>
+    <div class="abs disp it fm-title" data-i18n="form.title" data-fit></div>
+    <div class="abs fm-label" style="top:380px" data-i18n="form.name"></div>
+    <div class="abs field" id="f-name" data-field="name" style="top:410px"><div id="f-name-val"></div></div>
+    <div class="abs fm-label" style="top:546px" data-i18n="form.phone"></div>
+    <div class="abs field" id="f-phone" data-field="phone" style="top:576px"><div id="f-phone-val"></div></div>
     <div class="abs kb" id="kb"></div>
     <div class="abs fm-consents">
-      <div class="consent" data-consent="gift"><i class="pxcheck"></i><span class="vn" id="c-gift"></span></div>
-      <div class="consent" data-consent="mkt"><i class="pxcheck"></i><span class="vn" id="c-mkt"></span></div>
-      <button class="vn fm-policy" data-action="policy" data-i18n="form.policyLink"></button>
+      <div class="consent" data-consent="gift"><i class="pxcheck"></i><span id="c-gift"></span></div>
+      <div class="consent" data-consent="mkt"><i class="pxcheck"></i><span id="c-mkt"></span></div>
     </div>
     <div class="abs center fm-err" id="form-err"></div>
-    <button class="abs btn vn fm-submit" id="form-submit"><span data-i18n="form.send"></span><svg class="tri" viewBox="0 0 10 12"><path d="M0 0h2v1h2v1h2v1h2v1h2v4H8v1H6v1H4v1H2v1H0z"/></svg></button>
+    <button class="abs btn fm-submit" id="form-submit"><span data-i18n="form.send"></span><span class="ar">→</span></button>
+    <button class="abs fm-policy" data-action="policy" data-i18n="form.policyLink"></button>
   </section>
 
-  <!-- ============ REWARD ============ -->
-  <!-- app.js toReward(): #s-reward[data-v] = ok | down (tier 2 stock out → tier 1) | dup | oos; hold fill = transform scaleX -->
+  <!-- ============ REWARD (v2.6 11_reward: printer + receipt) ============ -->
+  <!-- app.js toReward(): #s-reward.t0 = no gift (duplicate / out of stock); staff hold = 2 s, progress on #rw-hold (--k) -->
   <section class="screen v2" id="s-reward" data-v="ok">
-    <img class="abs" src="assets/img/logo.png" style="left:415px;top:80px;width:250px" alt="hince">
-    <img class="abs pix fx-blink" src="assets/img/px/px_sparkle_w.svg" style="left:120px;top:110px;width:40px" alt="">
-    <img class="abs pix fx-blink d1" src="assets/img/px/px_sparkle_w.svg" style="left:920px;top:110px;width:40px" alt="">
-    <div class="abs center ttl pink vnt rw-title" id="rw-eyebrow" data-fit></div>
-    <div class="abs center vn rw-name" id="rw-name"></div>
-    <div class="abs win rw-win fx-winopen" id="rw-card"><div class="bar"><span>GIFT.EXE</span><span class="ico"><i class="u"></i><i class="sq"></i>×</span></div></div>
-    <div class="rw-in fx-winopen"><!-- GIFT.EXE contents: static 1080x0 wrapper so they pop with the window (origin = window centre) -->
-      <div class="abs rw-gico"><img class="pix" src="assets/img/px/px_gift.svg" style="width:200px" alt=""></div>
-      <div class="abs center rw-tier" id="rw-tier" data-fit></div>
-      <div class="abs rw-gift" id="rw-gift"></div>
-      <div class="abs center rw-code-label" data-i18n="reward.code"></div>
-      <div class="abs rw-code" id="rw-code">U-0001</div>
-      <div class="abs rw-note" id="rw-note"></div>
-    </div>
-    <div class="abs fx-float" style="left:70px;top:450px"><img class="glow" src="assets/img/3d/star_chrome.png" style="width:160px;transform:rotate(-12deg)" alt=""></div>
-    <div class="abs fx-float d1" style="left:890px;top:1210px"><img class="glow" src="assets/img/3d/sparkle_butter.png" style="width:120px" alt=""></div>
-    <div class="abs fx-float d2" style="left:880px;top:420px"><img class="glow" src="assets/img/3d/star_pink.png" style="width:110px;transform:rotate(12deg)" alt=""></div>
-    <div class="abs center vn rw-msg" id="rw-msg" data-fit></div>
-    <button class="abs rw-hold" id="rw-hold"><i id="rw-hold-fill"></i><span data-i18n="reward.staff"></span></button>
-    <button class="abs btn vn rw-done" id="rw-done" data-action="thanks"><span data-i18n="reward.finish"></span><svg class="tri" viewBox="0 0 10 12"><path d="M0 0h2v1h2v1h2v1h2v1h2v4H8v1H6v1H4v1H2v1H0z"/></svg></button>
+    <div class="abs rw-printer"><div class="lbl">HINCE · PRINT</div><div class="slot"></div></div>
+    <div class="abs rw-wrap" id="rw-card"><div class="rw-rc">
+      <img class="lg" src="assets/img/logo.png" alt="hince"><div class="sm">POP-UP STORE · TAKASHIMAYA</div>
+      <div class="dash rw-d1"></div>
+      <div class="disp rw-hi" id="rw-eyebrow" data-fit></div><div class="disp it rw-name" id="rw-name"></div>
+      <div class="dash rw-d2"></div>
+      <div class="rw-rows">
+        <div class="row"><span data-i18n="reward.row.game"></span><i></i><span id="rw-r-game"></span></div>
+        <div class="row"><span data-i18n="reward.row.score"></span><i></i><span id="rw-r-score"></span></div>
+        <div class="row"><span data-i18n="reward.row.tier"></span><i></i><span id="rw-tier"></span></div>
+        <div class="row"><span data-i18n="reward.row.time"></span><i></i><span id="rw-r-time"></span></div>
+      </div>
+      <div class="dash rw-d3"></div>
+      <div class="sm rw-code-label" data-i18n="reward.code"></div>
+      <div class="rw-code" id="rw-code">U-0001</div>
+      <svg class="rw-bc" id="rw-bc" viewBox="0 0 560 104" preserveAspectRatio="none"></svg>
+      <div class="disp it rw-gift" id="rw-gift" data-fit></div>
+      <div class="rw-note" id="rw-note"></div>
+      <div class="disp it rw-msg" id="rw-msg" data-fit></div>
+    </div></div>
+    <img class="st" src="assets/v26/stickers/p_gift.svg" style="left:836px;top:500px;width:170px;transform:rotate(12deg);z-index:4" alt="">
+    <img class="st" src="assets/v26/stickers/p_sparkle.svg" style="left:84px;top:640px;width:110px;transform:rotate(-10deg);z-index:4" alt="">
+    <img class="st" src="assets/v26/stickers/p_star.svg" style="left:110px;top:1330px;width:90px;transform:rotate(-14deg);z-index:4" alt="">
+    <button class="abs rw-hold" id="rw-hold"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="none" stroke="rgba(76,54,43,.15)" stroke-width="5"/><circle class="rg" cx="24" cy="24" r="19" fill="none" stroke="#B8728D" stroke-width="5" stroke-linecap="round" transform="rotate(-90 24 24)"/></svg><i id="rw-hold-fill"></i><span data-i18n="reward.staff"></span></button>
+    <button class="abs btn rw-done" id="rw-done" data-action="thanks"><span data-i18n="reward.finish"></span><span class="ar">→</span></button>
   </section>
 
-  <!-- ============ THANKS ============ -->
-  <!-- app.js toThanks(): #th-title name, #th-lips = lips of the last Perfect (Um-Pah), #th-sub per game; auto-return after idleSec.thanks -->
+  <!-- ============ THANKS (v2.6 12_thanks: postcard + taped polaroid of the game's product) ============ -->
+  <!-- app.js toThanks(): #th-title = name!, #th-lips = product photo (thanks_nb / thanks_rb), #th-sub per game; auto-return after idleSec.thanks -->
   <section class="screen v2" id="s-thanks">
-    <img class="abs" src="assets/img/bg/bg_sky_pink.png" style="left:0;top:0;width:1080px;height:1920px" alt="">
-    <img class="abs" src="assets/img/logo_white.png" style="left:390px;top:120px;width:300px" alt="hince">
-    <div class="abs center ttl" style="top:520px;font-size:150px">THANK<br>YOU!</div>
-    <div class="abs center ttl pink vnt th-title" id="th-title"></div>
-    <!-- v2.1 item 2: products/lips/line moved up so the line, #th-home and #th-count fit under them; app.js idleTick() fills #th-count -->
-    <img class="abs prod" src="assets/img/products/nu_blur_tint/06_nu_rose.png" style="left:310px;top:1040px;height:400px;transform:rotate(-12deg)" alt="">
-    <img class="abs prod" src="assets/img/products/radiance_balm/shelly_pink.png" style="left:625px;top:1040px;height:384px;transform:rotate(12deg)" alt="">
-    <img class="abs" id="th-lips" src="assets/img/3d/lips_v4/lips_06_nu_rose.png" style="left:360px;top:1280px;width:360px" alt="">
-    <div class="abs fx-float" style="left:140px;top:1100px"><img class="glow" src="assets/img/3d/star_chrome.png" style="width:150px;transform:rotate(-10deg)" alt=""></div>
-    <div class="abs fx-float d1" style="left:850px;top:1000px"><img class="glow" src="assets/img/3d/sparkle_butter.png" style="width:120px" alt=""></div>
-    <div class="abs fx-float d2" style="left:850px;top:1320px"><img class="glow" src="assets/img/3d/star_lilac.png" style="width:120px;transform:rotate(10deg)" alt=""></div>
-    <div class="abs center vn th-sub" id="th-sub" data-fit></div>
-    <button class="abs btn vn th-home" id="th-home" data-action="home" data-i18n="thanks.home"></button>
-    <div class="abs center vn th-count" id="th-count"></div>
+    <div class="abs paper th-card">
+      <div class="th-hd"><img src="assets/img/logo.png" alt="hince"><div>POP-UP STORE · TAKASHIMAYA</div></div>
+      <div class="th-pol"><img id="th-lips" src="assets/v26/photos/thanks_nb.jpg" alt=""><div class="cap" id="th-prod">Nu Blur Tint</div></div>
+      <div class="disp th-hi" id="th-hi" data-i18n="thanks.hi"></div><div class="disp it th-title" id="th-title"></div>
+      <div class="th-ln"></div><div class="th-sub" id="th-sub"></div>
+    </div>
+    <div class="tape" style="left:690px;top:262px;transform:rotate(14deg);z-index:4"></div>
+    <img class="st" src="assets/v26/stickers/p_heart.svg" style="left:820px;top:1150px;width:160px;transform:rotate(14deg)" alt="">
+    <img class="st" src="assets/v26/stickers/p_sparkle.svg" style="left:60px;top:1200px;width:110px" alt="">
+    <button class="abs btn th-home" id="th-home" data-action="home" data-i18n="thanks.home"></button>
+    <div class="abs center th-count" id="th-count"></div>
   </section>
 
   <!-- ============ PROMO (v2.1 item 6, staff) ============ -->
   <!-- app.js boot() probes settings.promoVideo; show('promo') plays it with sound (muted fallback). Any tap here (incl. #promo-back) = data-action home -->
   <section class="screen v2" id="s-promo" data-action="home">
     <video id="promo-video" loop playsinline preload="auto"></video>
-    <button class="promo-back" id="promo-back" data-action="home"><svg viewBox="0 0 7 7"><path d="M3 0h1v7H3zM2 1h1v5H2zM1 2h1v3H1zM0 3h1v1H0zM4 2h3v3H4z"/></svg>GAME</button>
+    <button class="promo-back" id="promo-back" data-action="home"><svg viewBox="0 0 7 7"><path d="M0 3.5 L3.5 0 V2 H7 V5 H3.5 V7 Z"/></svg>GAME</button>
   </section>
 
   <!-- ============ OVERLAYS ============ -->
   <div class="overlay v2" id="o-idle">
-    <div class="win ov-win fx-winopen" style="width:840px">
-      <div class="bar"><span>IDLE.EXE</span><span class="ico"><i class="u"></i><i class="sq"></i>×</span></div>
-      <div class="center vnt ov-ttl" data-i18n="idle.q"></div>
+    <div class="paper ov-win fx-winopen">
+      <div class="center ov-ttl" data-i18n="idle.q" data-fit></div>
       <div class="ov-sec" id="idle-sec">10</div>
-      <button class="btn vn ov-btn" data-action="idle-stay" data-i18n="common.continue"></button>
+      <button class="btn ov-btn" data-action="idle-stay" data-i18n="common.continue"></button>
     </div>
   </div>
   <div class="overlay v2" id="o-policy">
-    <div class="win ov-win fx-winopen" style="width:880px">
-      <div class="bar"><span>PRIVACY.EXE</span><span class="ico"><i class="u"></i><i class="sq"></i>×</span></div>
+    <div class="paper ov-win fx-winopen" style="width:880px">
       <p class="ov-text" id="policy-text"></p>
-      <button class="btn vn ov-btn" data-action="policy-close" data-i18n="ready.ok"></button>
+      <button class="btn ov-btn" data-action="policy-close" data-i18n="ready.ok"></button>
     </div>
   </div>
 
@@ -403,9 +382,9 @@
 
   <!-- ============ CONTROL CENTER (v2.3, admin.js; .pin = PIN pad showing, ĐÓNG hidden) ============ -->
   <div class="overlay admin v2 pin" id="o-admin">
-    <div class="abs win cc-win"><div class="bar"><span>CONTROL.EXE</span><span class="ico"><i class="u"></i><i class="sq"></i>×</span></div></div>
+    <div class="abs paper cc-win"></div>
     <div class="cc-h">CONTROL CENTER</div>
-    <button class="btn vn cc-x" id="cc-close" data-a="close" data-i18n="cc.close"></button>
+    <button class="btn cc-x" id="cc-close" data-a="close" data-i18n="cc.close"></button>
     <div class="admin-panel" id="admin-panel"></div>
   </div>
 </div>
