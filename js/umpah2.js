@@ -5,9 +5,11 @@
 (function () {
   'use strict';
   var K = Logic2.KISS;
-  var PED = [250, 540, 830], CY = 1480, HALF = 220;   // tube centres: pedestal centre x, tube top 1260 + 440 / 2
-  var KX = 496, KY = 860, KR = -14, KS = 0.91;         // kiss: cap tip on the lower-lip centre of every photo, tilted −14°
-  var DROP = [30, 320, 1050, 1200];                     // photo window (90,380 900x760) + 60 px
+  // v2.6.1 paper layout: tubes stand on the shelf (top 1080, 440 tall), photo 796x600 at (142,378) in the polaroid (120,296 −1.5°)
+  var PED = [250, 540, 830], CY = 1300, HALF = 220;   // tube centres: tag centre x, tube top 1080 + 440 / 2 (= CSS .u2-tube top)
+  var KX = 502, KY = 755, KR = -14, KS = 0.91;         // kiss: cap tip on the lower-lip centre of every photo (same photo point as v2.4), tilted −14°
+  var DROP = [60, 236, 1020, 940];                      // the polaroid (120,296 840x704) + 60 px, bottom 940: a lifted tube's cap rests at ~989,
+                                                        // so it must still go up >= 49 px before a release counts (same threshold as v2.4)
   var TAP_MS = 250, TAP_PX = 24, HOME = { x: 0, y: 0, r: 0, s: 1 }, FLY = 'cubic-bezier(.4,0,.2,1)';
   var LR = 8, LS = 1.06, LA = LR * Math.PI / 180;      // lifted tube: tilt 8° + scale 1.06 (mockup ?s=kiss)
   var el = {}, scr = null, stage = null, S = null, onEnd = null, state = 'off', raf = 0;
@@ -16,6 +18,8 @@
 
   function $(id) { return document.getElementById(id); }
   function fmt(n) { return n.toLocaleString('en-US'); }
+  function mmss(ms) { var s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + (s % 60); } // v2.6 HUD 0:31
+  var LIP = 'assets/v26/stickers/p_lips.svg'; // v2.6 progress sticker
   function after(fn, ms) { timers.push(setTimeout(fn, ms)); }
   function anim(node, kf, opt) { var a = node.animate(kf, opt); anims.push(a); return a; }
   function clearFx() { timers.forEach(clearTimeout); timers = []; anims.forEach(function (a) { a.cancel(); }); anims = []; }
@@ -47,7 +51,7 @@
     peds = scr.querySelectorAll('.u2-ped');
     [].forEach.call(scr.querySelectorAll('.u2-tube'), function (n, k) { tubes.push({ el: n, img: n.firstElementChild, slot: k, key: '', p: HOME, used: false, busy: 0 }); });
     var h = '', i, a, d, sz;
-    for (i = 0; i < K.lips; i++) h += '<img class="todo" src="' + ASSETS.lips(0) + '" alt="">';
+    for (i = 0; i < K.lips; i++) h += '<img class="todo" src="' + LIP + '" alt="">';
     el['u2-prog'].innerHTML = h; prog = el['u2-prog'].children;
     // powder puff: the same 10 soft dots as Um-Pah! 1, centred on the kiss point by CSS
     h = '';
@@ -69,7 +73,7 @@
     clearFx(); drag = null; S = null; onEnd = null;
     setState('off');
     el['u2-score'].textContent = '0';
-    for (var i = 0; i < prog.length; i++) { prog[i].src = ASSETS.lips(0); prog[i].className = 'todo'; }
+    for (var i = 0; i < prog.length; i++) prog[i].className = 'todo';
     el['u2-prog'].classList.remove('end');
     el['u2-photo'].classList.remove('drop');
     el['u2-hint'].style.opacity = '';
@@ -100,7 +104,7 @@
     b.style.zIndex = 1; phs[front].style.zIndex = 0; front = 1 - front;
     if (!first) anim(b, [{ opacity: 0 }, { opacity: 1 }], { duration: 250 });
     L.choices.forEach(function (key, k) {
-      var t = tubes[k]; t.key = key; t.el.setAttribute('data-shade', key); t.img.src = ASSETS.nb(key);
+      var t = tubes[k]; t.key = key; t.el.setAttribute('data-shade', key); t.img.src = ASSETS.nb(key); peds[k].textContent = shadeName(key);
       anim(t.el, [{ transform: css({ x: 0, y: HALF, r: 0, s: 0.01 }), opacity: 0 }, { transform: css(HOME), opacity: 1 }],
         { duration: 220, delay: k * 80, easing: 'cubic-bezier(.3,1.6,.5,1)', fill: 'backwards' });
     });
@@ -112,7 +116,7 @@
   function bank(now) { if (state === 'ready') { used += now - readyAt; lipUsed += now - readyAt; } } // leaving 'ready'
   function paintTime(ms) { // DOM writes only on change
     var s = Math.max(0, Math.ceil(ms / 1000)), n = Math.max(0, Math.ceil(seg.length * ms / S.activeMs));
-    if (s !== shownSec) { shownSec = s; el['u2-time'].textContent = s; }
+    if (s !== shownSec) { shownSec = s; el['u2-time'].textContent = mmss(ms); }
     if (n !== shownSeg) { shownSeg = n; for (var k = 0; k < seg.length; k++) seg[k].classList.toggle('on', k < n); }
   }
   function frame(now) {
@@ -205,8 +209,8 @@
     Sfx.play(miss ? 'kiss_this' : 'kiss_color');
     t.el.classList.remove('lift');
     el['u2-score'].textContent = fmt(S.score);
-    anim(el['u2-photo'], [{ transform: 'scale(.97)' }, { transform: 'scale(1.02)', offset: 0.5 }, { transform: 'scale(1)' }], { duration: 250, easing: 'ease-out' });
-    el['u2-stamp-t'].textContent = miss ? 'THIS ONE!' : 'UM-PAH!'; pop(el['u2-stamp']);
+    anim(el['u2-photo'], [{ transform: 'rotate(-1.5deg) scale(.97)' }, { transform: 'rotate(-1.5deg) scale(1.02)', offset: 0.5 }, { transform: 'rotate(-1.5deg) scale(1)' }], { duration: 250, easing: 'ease-out' });
+    el['u2-stamp-t'].textContent = miss ? 'THIS ONE!' : 'Um-Pah!'; pop(el['u2-stamp']);
     if (!miss) { el['u2-pts'].firstChild.textContent = '+' + j.points; pop(el['u2-pts'], 80); }
     el['u2-burst'].className = 'up-burst go'; // clearLip reset the class at the lip start = the CSS burst restarts
     puff.forEach(function (q) {
@@ -217,7 +221,7 @@
   }
   function lipDone(i, key, miss) {
     var n = prog[i];
-    n.src = ASSETS.lips(ASSETS.NB.indexOf(key) + 1); n.className = miss ? 'miss' : '';
+    n.className = miss ? 'miss' : '';
     if (!miss) anim(n, [{ transform: 'scale(1.25)' }, { transform: 'scale(1)' }], { duration: 400, easing: 'ease-out' });
     el['u2-name'].textContent = shadeName(key); pop(el['u2-name']);
   }

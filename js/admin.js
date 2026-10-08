@@ -8,8 +8,8 @@
   var ov, panel, mode = 'pin', pin = '', newPin = '', msg = '', closeTimer = 0, arm = '', armTimer = 0, back = 0;
   var DIFF = ['easy', 'normal', 'hard']; // labels: I18N cc.easy / cc.normal / cc.hard
   function T(k, v) { return I18N.t(k, v); } // v2.4: the Control Center follows the current language
-  var PIC = { // row image: Um-Pah! 1 = 8-bit Nu Blur tube at 1× (pixelated), the others = packshots (no filter)
-    umpah: '<img class="pix" src="assets/img/px/tube/px_tube_06_nu_rose.png" width="24" height="96" alt="">',
+  var PIC = { // row image: packshots (no filter); v2.6: Um-Pah! 1 = the Nu Rose packshot of its card backs (no 8-bit tube)
+    umpah: '<img src="assets/img/products/nu_blur_tint/06_nu_rose.png" style="transform:rotate(-14deg)" alt="">',
     umpah2: '<img src="assets/img/products/nu_blur_tint/06_nu_rose.png" alt="">',
     taptap: '<img src="assets/img/products/radiance_balm/shelly_pink.png" alt="">',
     taptap2: '<img src="assets/img/products/radiance_balm/gleaming.png" alt="">'

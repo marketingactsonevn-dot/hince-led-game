@@ -1,11 +1,11 @@
-/* Tap-Tap! 2 (v2.2) — claw machine: the claw slides by itself, a tap anywhere drops it onto the named Radiance Balm.
+/* Tap-Tap! 2 (v2.2, v2.6 paper parts: carriage / cable / head from design/v26_kit/geometry.json) — claw machine: the claw slides by itself, a tap anywhere drops it onto the named Radiance Balm.
    Logic: Logic2.Taptap2Session (drop(ms) takes the raw clock and applies Admin's latencyMs itself).
    Per frame only #t2-rig moves (translateX = claw x); every sequence is Web Animations on transform/opacity.
    #s-taptap2[data-st] = moving (a tap is accepted) | anim | over | off. Packshots: never filtered or recoloured. */
 (function () {
   'use strict';
   var G = Logic2.GRAB, SX = G.slotX, N = G.grabs;
-  var DOWN = 350, BALM_TOP = 1120, TRAY_Y = 1628 - BALM_TOP, TRAY_S = 96 / 286; // claw top 640 -> 990; won balm in the tray: top 1628, h 96
+  var DOWN = 350, BALM_TOP = 1120, TRAY_Y = 1538 - BALM_TOP, TRAY_S = 96 / 286; // head top 637 -> 987 (tips 862 -> 1212); won balm in the tray: top 1538 (= CSS .t2-tray top 1530 + 8), h 96
   // per-grab timeline (ms after the tap), TASK §3.2
   var T_CLOSE = 500, T_LIFT = 570, T_SLIP = 700, T_OPEN = 1070, T_LAND = 1570, T_SHUF = 1870, T_RESUME = 2320, GHOST_MS = 150, END_MS = 900;
   var el = {}, scr = null, S = null, onEnd = null, state = 'off', raf = 0, run = false, t0 = 0, lastX = 0, left = false;
@@ -40,7 +40,7 @@
     bulbs.innerHTML = h;
     h = ''; for (i = 0; i < N; i++) h += '<div class="t2-shad" style="left:' + (SX[i] - 48) + 'px"></div>';
     $('t2-shads').innerHTML = h; shads = $('t2-shads').children;
-    h = ''; for (i = 0; i < N; i++) h += '<div class="t2-tray" style="left:' + (94 + 130 * i) + 'px"><img src="' + ASSETS.rb(ASSETS.RB[0]) + '" alt=""></div>';
+    h = ''; for (i = 0; i < N; i++) h += '<div class="t2-tray" style="left:' + (94 + 130 * i) + 'px"><img src="' + ASSETS.head(ASSETS.RB[0]) + '" alt=""></div>'; // v2.6: won = bullet close-up
     $('t2-trays').innerHTML = h; trays = $('t2-trays').children;
     h = ''; for (i = 0; i < N; i++) h += '<div class="t2-balm" data-balm="' + i + '"><img class="prod" src="' + ASSETS.rb(ASSETS.RB[i]) + '" alt=""></div>';
     $('t2-balms').innerHTML = h; balms = $('t2-balms').children;
@@ -81,10 +81,10 @@
   function finish() { var cb = onEnd; halt(); if (cb) cb(S); }
 
   function showTarget(g) {
-    el['tgt-img'].src = ASSETS.rb(ASSETS.RB[g.target]);
-    el['tgt-name'].textContent = ASSETS.RB_NAMES[g.target];
+    el['tgt-img'].src = ASSETS.head(ASSETS.RB[g.target]); // v2.6 swatch: square bullet close-up, 124x124
+    el['tgt-name'].textContent = ASSETS.RB_NAMES[g.target].toLowerCase().replace(/(^| )\w/g, function (c) { return c.toUpperCase(); }); // Shelly Pink
     el.grab.textContent = (g.i + 1) + '/' + N;
-    anim(el.target, [{ transform: 'scale(.6)' }, { transform: 'scale(1)' }], { duration: 240, easing: 'steps(4)' });
+    anim(el.target, [{ transform: 'rotate(-1deg) scale(.96)' }, { transform: 'rotate(-1deg) scale(1)' }], { duration: 200, easing: 'ease-out' }); // paper pop
   }
   // the claw starts moving from its start side; taps count GHOST_MS later
   function resume() {
@@ -123,12 +123,12 @@
     var b = j.balm === null ? null : balms[j.balm], sx = j.slot === null ? 0 : SX[j.slot];
     // 0–450: descend (ease-in); the cable stretches with the same curve
     tw(el.claw, 'translateY(0px)', 'translateY(' + DOWN + 'px)', 450, 'ease-in');
-    tw(el.cable, 'scaleY(1)', 'scaleY(' + (70 + DOWN) / 70 + ')', 450, 'ease-in');
+    tw(el.cable, 'scaleY(1)', 'scaleY(' + (36 + DOWN) / 36 + ')', 450, 'ease-in'); // v2.6 cable rest height 36
     after(function () { el.claw.classList.add('closed'); Sfx.play('grab_close'); }, T_CLOSE);
     // 570–1070: lift (linear); a caught balm rises with it, its top 130 px below the claw top
     after(function () {
       tw(el.claw, 'translateY(' + DOWN + 'px)', 'translateY(0px)', T_OPEN - T_LIFT);
-      tw(el.cable, 'scaleY(' + (70 + DOWN) / 70 + ')', 'scaleY(1)', T_OPEN - T_LIFT);
+      tw(el.cable, 'scaleY(' + (36 + DOWN) / 36 + ')', 'scaleY(1)', T_OPEN - T_LIFT);
       if (!b) { word('MISS'); Sfx.play('grab_miss'); return; }
       fade(shads[j.slot], 0, 150);
       if (j.result === 'got') return tw(b, bt(sx, 0), bt(j.x, -DOWN), T_OPEN - T_LIFT);
@@ -143,7 +143,7 @@
     }
     after(function () { el.claw.classList.remove('closed'); if (j.result === 'got') got(g, j, b); }, T_OPEN);
     after(function () {
-      if (j.result === 'got') { b.style.opacity = 0; b.style.zIndex = ''; trays[g.i].className = 't2-tray on'; trays[g.i].firstChild.src = ASSETS.rb(ASSETS.RB[g.target]); }
+      if (j.result === 'got') { b.style.opacity = 0; b.style.zIndex = ''; trays[g.i].className = 't2-tray on'; trays[g.i].firstChild.src = ASSETS.head(ASSETS.RB[g.target]); }
       if (S.done()) { setState('over'); return after(finish, END_MS); }
       if (j.result === 'got') { // refill: a new balm of the same shade drops into the empty slot (300 ms)
         b.style.opacity = '';

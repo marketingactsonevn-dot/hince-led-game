@@ -1,37 +1,32 @@
-/* hince LED Game — v2 asset lists + boot-time image preload (ES5, works from file://). */
+/* hince LED Game — v2 asset lists + boot-time image preload (ES5, works from file://).
+   v2.6: the 8-bit / 3D sticker / pixel tile files are retired to assets/_retired_v24/ (paper & sticker kit = assets/v26/). */
 (function () {
   'use strict';
   var NB = ['01_near', '02_dear', '03_nu_allure', '04_figray', '05_hug', '06_nu_rose', '07_heart', '08_wild', '09_cold', '10_leather'];
   var NB_NAMES = ['Near', 'Dear', 'Nu Allure', 'Figray', 'Hug', 'Nu Rose', 'Heart', 'Wild', 'Cold', 'Leather'];
   var RB = ['01_clear', '02_dawn_ray', '03_tender_room', '05_light', 'gleaming', 'lil_mauve', 'shelly_pink'];
   var RB_NAMES = ['CLEAR', 'DAWN RAY', 'TENDER ROOM', 'LIGHT', 'GLEAMING', 'LIL MAUVE', 'SHELLY PINK'];
-  var D3 = ['star_chrome', 'star_pink', 'star_butter', 'star_lilac', 'sparkle_butter', 'sparkle_chrome', 'sparkle_pearl', 'pearl_orb', 'heart_pink'];
-  var PX = ['px_hand', 'px_cursor', 'px_sparkle', 'px_sparkle_w', 'px_star', 'px_gift', 'px_crown', 'px_lips', 'px_claw_open', 'px_claw_closed', 'px_arrow_up'];
-  var BG = ['bg_sky_pink.png', 'tile_pink_sparkle.png', 'tile_lilac_sparkle.png'];
+  // v2.6 paper & sticker kit (assets/v26/, design/v26_kit): textures, stickers, Tap-Tap! 1 pad, Tap-Tap! 2 claw, thanks photos; heads/ = one per RB shade
+  var V26 = ['bg/bg_toffee_paper.jpg', 'paper/paper.jpg', 'paper/receipt.jpg', 'paper/tape.svg', 'paper/clip.svg', 'paper/arrow.svg',
+    'stickers/p_heart.svg', 'stickers/p_lips.svg', 'stickers/p_sparkle.svg', 'stickers/p_bow.svg', 'stickers/p_gift.svg', 'stickers/p_crown.svg', 'stickers/p_star.svg',
+    'tap/cap_pad.png', 'claw/claw_carriage.png', 'claw/claw_head_open.png', 'claw/claw_head_closed.png', 'photos/thanks_nb.jpg', 'photos/thanks_rb.jpg'];
 
   function nb(name) { return 'assets/img/products/nu_blur_tint/' + name + '.png'; }
   function rb(name) { return 'assets/img/products/radiance_balm/' + name + '.png'; }
-  function d3(name) { return 'assets/img/3d/' + name + '.png'; }
-  function px(name) { return 'assets/img/px/' + name + '.svg'; }
-  function bg(file) { return 'assets/img/bg/' + file; }
-  // 0 -> bare lips, i>=1 -> lips painted with shade NB[i-1] (lips_v4 = matte Nu Blur set, 1100x698)
-  function lips(i) { return 'assets/img/3d/lips_v4/' + (i ? 'lips_' + NB[i - 1] : 'lips_00_nude') + '.png'; }
+  function v26(f) { return 'assets/v26/' + f; }
+  // v2.6: square bullet close-up of Radiance Balm shade RB[i] name (168x168, bullet centred): target swatch + trays
+  function head(name) { return v26('heads/head_' + name + '.png'); }
   // official Nu Blur lip swatch photo of shade NB[i] (i 0-based), 1200x960 — colour reference, never filtered
   function photo(i) { return 'assets/img/lips_photo/' + NB[i] + '.jpg'; }
-  // v2.3: 8-bit Nu Blur tube of shade NB[i] (i 0-based), 24x96 — integer scales only, image-rendering: pixelated
-  function tube(i) { return 'assets/img/px/tube/px_tube_' + NB[i] + '.png'; }
 
   function list() {
     var out = [], i;
     for (i = 0; i < NB.length; i++) out.push(nb(NB[i]));
     for (i = 0; i < RB.length; i++) out.push(rb(RB[i]));
-    for (i = 0; i <= NB.length; i++) out.push(lips(i));
     for (i = 0; i < NB.length; i++) out.push(photo(i));
-    for (i = 0; i < NB.length; i++) out.push(tube(i));
-    for (i = 0; i < D3.length; i++) out.push(d3(D3[i]));
-    for (i = 0; i < PX.length; i++) out.push(px(PX[i]));
-    for (i = 0; i < BG.length; i++) out.push(bg(BG[i]));
-    out.push('assets/img/logo.png', 'assets/img/logo_white.png');
+    for (i = 0; i < V26.length; i++) out.push(v26(V26[i]));
+    for (i = 0; i < RB.length; i++) out.push(head(RB[i]));
+    out.push('assets/img/logo.png');
     return out;
   }
 
@@ -59,6 +54,6 @@
     if (!left) finish();
   }
 
-  var api = { NB: NB, NB_NAMES: NB_NAMES, RB: RB, RB_NAMES: RB_NAMES, cache: {}, nb: nb, rb: rb, lips: lips, photo: photo, tube: tube, d3: d3, px: px, bg: bg, list: list, preload: preload };
+  var api = { NB: NB, NB_NAMES: NB_NAMES, RB: RB, RB_NAMES: RB_NAMES, cache: {}, nb: nb, rb: rb, photo: photo, v26: v26, head: head, list: list, preload: preload };
   window.ASSETS = api;
 })();

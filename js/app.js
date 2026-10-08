@@ -15,7 +15,6 @@
   // ---------------- game registry (v2.2): every per-game branch reads from here ----------------
   // module() / session() resolve lazily: umpah2.js / taptap2.js / logic2.js may not be loaded.
   // start(S) starts the module with its own signature (Um-Pah! 1 resets its HUD first).
-  // lips(S) (optional) = THANKS lips shade number 1..10 from the finished session, 0 = none (THANKS falls back to 06 Nu Rose).
   var TH_NB = 'thanks.nb', TH_RB = 'thanks.rb'; // i18n keys (THANKS line per product)
   function T(k, v) { return I18N.t(k, v); }
   function en() { return I18N.lang === 'en'; }
@@ -24,18 +23,16 @@
   function lvl(k) { return (App.settings.difficulty || {})[k] || 'normal'; } // v2.3 D: Control Center difficulty for game k
   var GAME = {
     // v2.3: Um-Pah! 1 = "Lật Cặp Môi" lip-photo memory game (umpah1.js, Logic2.Umpah1Session); the v2.2 ring game is in assets/_archive/
-    umpah: { name: 'Um-Pah! 1', title: 'UM-PAH!', num: 1, world: 'pink', product: 'Nu Blur Tint', prefix: 'U', thanks: TH_NB, bgm: 'umpah', bar: 'UM-PAH-1.EXE', story: 'rd-up', max: 1500,
+    umpah: { name: 'Um-Pah! 1', title: 'Um-Pah!', num: 1, world: 'pink', product: 'Nu Blur Tint', prefix: 'U', thanks: TH_NB, bgm: 'umpah', bar: 'UM-PAH-1.EXE', story: 'rd-up', max: 1500,
       session: function (seed) { return new Logic2.Umpah1Session(seed, { difficulty: lvl('umpah') }); }, module: function () { return window.Umpah1Game; },
-      start: function (S) { Umpah1Game.start(S, endGame, App.home); },
-      lips: function (S) { return S.found.length ? ASSETS.NB.indexOf(S.found[S.found.length - 1]) + 1 : 0; } }, // last pair found
-    umpah2: { name: 'Um-Pah! 2', title: 'UM-PAH!', num: 2, world: 'pink', product: 'Nu Blur Tint', prefix: 'U2', thanks: TH_NB, bgm: 'umpah2', bar: 'UM-PAH-2.EXE', story: 'rd-kk', max: 1500,
+      start: function (S) { Umpah1Game.start(S, endGame, App.home); } },
+    umpah2: { name: 'Um-Pah! 2', title: 'Um-Pah!', num: 2, world: 'pink', product: 'Nu Blur Tint', prefix: 'U2', thanks: TH_NB, bgm: 'umpah2', bar: 'UM-PAH-2.EXE', story: 'rd-kk', max: 1500,
       session: function (seed) { return new Logic2.Umpah2Session(seed, { difficulty: lvl('umpah2') }); }, module: function () { return window.Umpah2Game; },
-      start: function (S) { Umpah2Game.start(S, endGame, App.home); },
-      lips: function (S) { var i = Math.max(S.results.lastIndexOf('first'), S.results.lastIndexOf('second')); return i < 0 ? 0 : ASSETS.NB.indexOf(S.order[i]) + 1; } },
-    taptap: { name: 'Tap-Tap! 1', title: 'TAP-TAP!', num: 1, world: 'lilac', product: 'Radiance Balm', prefix: 'T', thanks: TH_RB, bgm: 'taptap', bar: 'TAP-TAP-1.EXE', story: 'rd-tt', max: tilesMaxAvg('normal'), maxBy: { easy: tilesMaxAvg('easy'), normal: tilesMaxAvg('normal'), hard: tilesMaxAvg('hard') }, // maxBy: Control Center ≈ points
+      start: function (S) { Umpah2Game.start(S, endGame, App.home); } },
+    taptap: { name: 'Tap-Tap! 1', title: 'Tap-Tap!', num: 1, world: 'lilac', product: 'Radiance Balm', prefix: 'T', thanks: TH_RB, bgm: 'taptap', bar: 'TAP-TAP-1.EXE', story: 'rd-tt', max: tilesMaxAvg('normal'), maxBy: { easy: tilesMaxAvg('easy'), normal: tilesMaxAvg('normal'), hard: tilesMaxAvg('hard') }, // maxBy: Control Center ≈ points
       session: function (seed) { return new Logic.TilesSession(seed, { difficulty: lvl('taptap') }); }, module: function () { return window.TaptapGame; },
       start: function (S) { TaptapGame.start(S, { latencyMs: App.settings.latencyMs }, endGame); } },
-    taptap2: { name: 'Tap-Tap! 2', title: 'TAP-TAP!', num: 2, world: 'lilac', product: 'Radiance Balm', prefix: 'T2', thanks: TH_RB, bgm: 'taptap2', bar: 'TAP-TAP-2.EXE', story: 'rd-gg', max: 1400,
+    taptap2: { name: 'Tap-Tap! 2', title: 'Tap-Tap!', num: 2, world: 'lilac', product: 'Radiance Balm', prefix: 'T2', thanks: TH_RB, bgm: 'taptap2', bar: 'TAP-TAP-2.EXE', story: 'rd-gg', max: 1400,
       session: function (seed) { return new Logic2.Taptap2Session(seed, { latencyMs: App.settings.latencyMs, difficulty: lvl('taptap2') }); }, module: function () { return window.Taptap2Game; },
       start: function (S) { Taptap2Game.start(S, endGame); } } // latency: the session applies it in drop()
   };
@@ -88,17 +85,17 @@
   var BGM = { attract: 'lobby', select: 'lobby', intro: 'lobby', ready: 'lobby', result: 'lobby', form: 'lobby', reward: 'lobby', thanks: 'lobby' };
   GAME_ORDER.forEach(function (k) { BGM[k] = GAME[k].bgm; }); // game screen id = game key
   function show(name) {
+    if (name === 'select') name = 'attract'; // v2.6: SELECT merged into the ATTRACT ticket tabs
     var prev = App.screen, cur = document.querySelector('.screen.active');
     if (cur) cur.classList.remove('active');
-    if (name === 'select') layoutSelect();
+    if (name === 'attract') layoutSelect();
     $('s-' + name).classList.add('active');
     App.screen = name; App.lastAct = performance.now(); App.shownAt = performance.now();
     var scr = $('s-' + name); requestAnimationFrame(function () { if (App.screen === name) I18N.fitIn(scr); }); // v2.4: longer English lines shrink to fit
     hideIdle();
     if (BGM[name]) Music.play(BGM[name]); else Music.pause();
-    var v = $('attract-video');
-    if (name === 'attract') { if ($('s-attract').classList.contains('has-video')) { try { v.currentTime = 0; var p = v.play(); if (p && p.catch) p.catch(function () { }); } catch (e) { } } }
-    else { try { v.pause(); } catch (e) { } }
+    if (name === 'attract') attractVideo(true);
+    else { try { $('attract-video').pause(); } catch (e) { } }
     if (prev === 'intro' && name !== 'intro') introStop(); // v2.4: never keep decoding the intro in the background
     var pv = $('promo-video');
     if (name === 'promo') playPromo(pv);
@@ -128,23 +125,18 @@
     } finally { App.homing = false; }
   };
 
-  function toSelect() { show('select'); }
-  // SELECT: only selectable cards, in GAME_ORDER, into the slots for their count (canvas px, card 450x640)
-  var SLOTS = {
-    4: [[70, 452], [560, 452], [70, 1142], [560, 1142]],
-    3: [[70, 452], [560, 452], [315, 1142]],
-    2: [[70, 760], [560, 760]],
-    1: [[315, 760]]
-  };
+  // ATTRACT ticket tabs (v2.6, was SELECT): only selectable games, in GAME_ORDER; the flex row shares the width (4/3/2/1)
   function layoutSelect() {
     var list = GAME_ORDER.filter(App.selectable);
-    if (!list.length) list = GAME_ORDER.filter(function (k) { return GAME[k].module(); }); // never an empty SELECT (bad injected settings)
-    var slots = SLOTS[list.length];
-    [].forEach.call(document.querySelectorAll('#s-select .game-card'), function (c) {
-      var i = list.indexOf(c.getAttribute('data-game'));
-      c.style.display = i < 0 ? 'none' : '';
-      if (i >= 0) { c.style.left = slots[i][0] + 'px'; c.style.top = slots[i][1] + 'px'; }
-    });
+    if (!list.length) list = GAME_ORDER.filter(function (k) { return GAME[k].module(); }); // never an empty row (bad injected settings)
+    [].forEach.call(document.querySelectorAll('#s-attract .game-card'), function (c) { c.style.display = list.indexOf(c.getAttribute('data-game')) < 0 ? 'none' : ''; });
+  }
+  // attract video: the first tap shows the flyer (.peek, never starts a game); idle on the flyer (idleSec.select) → the video again
+  function attractVideo(on) {
+    var s = $('s-attract'), v = $('attract-video');
+    s.classList.toggle('peek', !on);
+    if (on && s.classList.contains('has-video')) { try { v.currentTime = 0; var p = v.play(); if (p && p.catch) p.catch(function () { }); } catch (e) { } }
+    else { try { v.pause(); } catch (e) { } }
   }
 
   // READY: icon story + 3·2·1 + title flash, then auto-start. Timers go through later() (App.home cancels them)
@@ -156,8 +148,8 @@
   function readyPair(el, G) {
     var tap = G.world === 'lilac';
     el.innerHTML = '<span class="rd-pair"><span class="ttl ' + (tap ? 'lil' : 'pink') + '">' + G.title + '</span><span class="lvl' + (tap ? ' lil' : '') + '">' + G.num + '</span></span>';
-    var p = el.firstChild, w = p.offsetWidth;
-    if (w > 960) p.style.transform = 'scale(' + (960 / w).toFixed(3) + ')';
+    var p = el.firstChild, w = p.offsetWidth, max = Math.min(960, (el.clientWidth || 960) - 60); // v2.6: fits its paper (notebook / strip)
+    if (w > max) p.style.transform = 'scale(' + (max / w).toFixed(3) + ')';
   }
   // txt = 3·2·1 digit; flash = title + number badge
   function readyShow(txt, flash) {
@@ -182,6 +174,7 @@
     s.setAttribute('data-game', game); s.setAttribute('data-story', G.story); s.classList.toggle('lilac', tap);
     $('ready-win').classList.toggle('lil', tap);
     $('ready-count').textContent = ''; readyFlashed = false;
+    $('ready-prod').textContent = G.product;
     show('ready');
     readyPair($('ready-title'), G);
     ['3', '2', '1'].forEach(function (txt, i) { readyLater(function () { if (readyShow(txt, false)) Sfx.play('count'); }, i * 800); });
@@ -195,7 +188,7 @@
   // Two <video>s are preloaded at boot. WebM (VP9 alpha) only on Chromium, else the MP4 with the screen background baked in.
   // ended → hold 250 ms → 120 ms white flash → toReady; tap (≥ 400 ms) skips to the flash; no 'playing' within 1200 ms,
   // error or stalled → end PNG pops in, 1200 ms, READY; hard cap 4.5 s. Timers go through later() (App.home cancels them).
-  var INTRO = { nb: { file: 'reveal_nublur', bake: '_pink', chip: 'NU BLUR TINT', beat: 1550 }, rb: { file: 'reveal_balm', bake: '_lilac', chip: 'RADIANCE BALM', beat: 750 } };
+  var INTRO = { nb: { file: 'reveal_nublur', bake: '_toffee', chip: 'NU BLUR TINT', beat: 1550 }, rb: { file: 'reveal_balm', bake: '_toffee', chip: 'RADIANCE BALM', beat: 750 } };
   var intro = { game: '', k: '', v: null, done: true, started: false, fb: false };
   function introSrc(k) {
     var I = INTRO[k], v = $('intro-' + k), webm = false;
@@ -264,16 +257,18 @@
   }
 
   // RESULT: title + labels by tier, score count-up (1.2 s ease-out), 14-cell bar, gift/crown under the tier thresholds
-  var SEG_X = 180, SEG_W = 720; // .res-seg in canvas coords (window 110 + margin 70, width 860 - 140)
+  function num(n) { return n.toLocaleString(en() ? 'en-US' : 'vi-VN'); } // v2.6: 1.200 (VI) / 1,200 (EN)
   function showResult() {
     var r = App.result, g = App.game, t = r.tierByScore, dur = 1200;
-    var n1 = needPts(g, r.max, 1), n2 = needPts(g, r.max, 2), fin = r.score.toLocaleString('en-US');
+    var n1 = needPts(g, r.max, 1), n2 = needPts(g, r.max, 2), fin = num(r.score);
     $('s-result').setAttribute('data-tier', t);
     $('res-title').innerHTML = t ? 'LEVEL ' + t + '<br>CLEAR!' : 'SO<br>CLOSE!';
-    $('res-tier').textContent = T('result.tier', { n: t });
+    $('res-eb').textContent = T('result.eyebrow', { game: GAME[g].name.toUpperCase() });
+    $('res-of').textContent = T('result.of', { max: num(r.max) });
+    $('res-tier').textContent = T('result.level', { n: t });
     $('res-need').textContent = T('result.need', { n: Math.max(0, n1 - r.score).toLocaleString(en() ? 'en-US' : 'vi-VN') });
-    $('res-ico1').style.left = Math.round(SEG_X + SEG_W * Math.min(1, n1 / r.max) - 45) + 'px';
-    $('res-ico2').style.left = Math.round(SEG_X + SEG_W * Math.min(1, n2 / r.max) - 50) + 'px';
+    $('res-ico1').style.left = (100 * Math.min(1, n1 / r.max)).toFixed(2) + '%'; $('res-ml1').textContent = T('result.tier', { n: 1 }); // v2.6 cocoa ticks on the meter
+    $('res-ico2').style.left = (100 * Math.min(1, n2 / r.max)).toFixed(2) + '%'; $('res-ml2').textContent = T('result.tier', { n: 2 });
     // cell i lights when the count-up passes (i + .5) / 14 of max (inverse of the ease-out below)
     var cells = $('res-seg').children, lit = Math.round(14 * Math.min(1, r.score / r.max));
     for (var i = 0; i < cells.length; i++) {
@@ -284,13 +279,13 @@
     next.firstChild.textContent = T(t ? 'result.claim' : 'result.save');
     next.style.display = form ? '' : 'none'; skip.style.display = form ? 'none' : '';
     var el = $('res-score');
-    el.style.fontSize = (fin.length <= 5 ? 200 : Math.floor(200 * 5 / fin.length * 0.95)) + 'px'; // final string fits 800 px
+    el.style.fontSize = (fin.length <= 5 ? 250 : Math.floor(250 * 5 / fin.length * 0.95)) + 'px'; // final string fits the sheet
     el.textContent = '0';
     show('result');
     var t0 = performance.now(), shown = '0';
     (function step(now) {
       if (App.screen !== 'result') return;
-      var k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3), txt = Math.round(r.score * e).toLocaleString('en-US');
+      var k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3), txt = num(Math.round(r.score * e));
       if (txt !== shown) { el.textContent = shown = txt; Sfx.play('count_tick'); } // Sfx rate-limits ticks to 60 ms
       if (k < 1) requestAnimationFrame(step);
       else Sfx.play(t === 2 ? 'win_t2' : t ? 'win_t1' : 'no_tier');
@@ -319,7 +314,7 @@
     $('f-phone-val').textContent = f.phone.charAt(0) === '+' ? f.phone : Logic.formatPhone(f.phone);
     $('f-name').classList.toggle('focus', f.focus === 'name');
     $('f-phone').classList.toggle('focus', f.focus === 'phone');
-    fitFont($('f-name-val'), 64); fitFont($('f-phone-val'), 64);
+    fitFont($('f-name-val'), 66); fitFont($('f-phone-val'), 66);
     document.querySelector('[data-consent="gift"]').classList.toggle('on', f.cg);
     document.querySelector('[data-consent="mkt"]').classList.toggle('on', f.cm);
   }
@@ -328,6 +323,7 @@
     $('c-gift').textContent = txt('consentGiftText'); $('c-mkt').textContent = txt('consentMarketingText');
     $('form-err').textContent = ''; $('f-name').classList.remove('bad'); $('f-phone').classList.remove('bad');
     $('form-submit').disabled = false;
+    $('fm-eb').textContent = App.result && App.result.tierByScore ? T('result.tier', { n: App.result.tierByScore }) : ''; // v2.6 eyebrow
     renderKb(); renderForm(); show('form');
   }
   function onKey(k) {
@@ -387,24 +383,41 @@
   function toReward(rec, saved) {
     var t0 = !rec.tier, dup = rec.reason === 'duplicate';
     $('s-reward').classList.toggle('t0', t0);
-    $('rw-eyebrow').textContent = T(t0 ? 'thanks.title' : 'reward.congrats');
-    $('rw-name').textContent = rec.name;
-    $('rw-tier').textContent = T('result.tier', { n: rec.tier });
+    $('rw-eyebrow').textContent = T(t0 ? 'thanks.title' : 'reward.hi');
+    $('rw-name').textContent = rec.name + '!';
+    $('rw-tier').textContent = t0 ? '—' : T('result.tier', { n: rec.tier });
+    // v2.6 receipt rows: game · score / max · gift level · time (from the record's createdAt, local)
+    var G = GAME[rec.game], ts = String(rec.createdAt || '');
+    $('rw-r-game').textContent = G ? G.name.toUpperCase() : '';
+    $('rw-r-score').textContent = num(rec.score || 0) + ' / ' + num(rec.maxScore || 0);
+    $('rw-r-time').textContent = ts.length >= 16 ? ts.slice(8, 10) + '/' + ts.slice(5, 7) + '/' + ts.slice(0, 4) + ' · ' + ts.slice(11, 16) : '';
     $('rw-gift').textContent = t0 ? T(dup ? 'reward.done' : 'result.soldOut') : rec.giftName;
     $('rw-code').textContent = rec.rewardCode;
+    barcode($('rw-bc'), t0 ? '' : String(rec.rewardCode || ''));
     $('rw-note').textContent = t0 ? T(dup ? 'form.onePerPhone' : 'reward.tomorrow') : rec.reason === 'downgraded' ? T('reward.downgrade') : '';
     $('rw-msg').textContent = !saved ? T('form.err.save') : t0 ? '' : T('reward.show');
     resetHold();
     show('reward');
-    fitFont($('rw-name'), 64); fitFont($('rw-gift'), 80, 136); fitFont($('rw-code'), 150);
+    fitFont($('rw-name'), 128); fitFont($('rw-gift'), 64); fitFont($('rw-code'), 104);
     if (!t0) Sfx.play('win_t' + rec.tier);
   }
+  // v2.6 P2: Code 128-B barcode of the gift code as inline SVG bars (no library). C128[v] = bar/space module widths of value v
+  // (103–105 start A/B/C, 106 stop); checksum = (104 + Σ i·v_i) mod 103. tests/app_tests/v26_check.py decodes the bars back.
+  var C128 = '212222 222122 222221 121223 121322 131222 122213 122312 132212 221213 221312 231212 112232 122132 122231 113222 123122 123221 223211 221132 221231 213212 223112 312131 311222 321122 321221 312212 322112 322211 212123 212321 232121 111323 131123 131321 112313 132113 132311 211313 231113 231311 112133 112331 132131 113123 113321 133121 313121 211331 231131 213113 213311 213131 311123 311321 331121 312113 312311 332111 314111 221411 431111 111224 111422 121124 121421 141122 141221 112214 112412 122114 122411 142112 142211 241211 221114 413111 241112 134111 111242 121142 121241 114212 124112 124211 411212 421112 421211 212141 214121 412121 111143 111341 131141 114113 114311 411113 411311 113141 114131 311141 411131 211412 211214 211232 2331112'.split(' ');
+  function barcode(svg, text) {
+    var v = [104], sum = 104, x = 10, h = '', i, j, c, p;
+    for (i = 0; i < text.length; i++) { c = text.charCodeAt(i) - 32; if (c < 0 || c > 94) text = ''; v.push(c); sum += c * (i + 1); }
+    if (!text) { svg.innerHTML = ''; return; } // nothing to encode: no barcode (never a fake one)
+    v.push(sum % 103, 106);
+    for (i = 0; i < v.length; i++) for (p = C128[v[i]], j = 0; j < p.length; j++) { if (!(j % 2)) h += '<rect x="' + x + '" width="' + p[j] + '" height="1"/>'; x += +p[j]; }
+    svg.setAttribute('viewBox', '0 0 ' + (x + 10) + ' 1'); svg.innerHTML = h;
+  }
   var holdT0 = 0, holdRaf = 0, holding = false;
-  function resetHold() { holding = false; cancelAnimationFrame(holdRaf); $('rw-hold-fill').style.transform = 'scaleX(0)'; }
+  function resetHold() { holding = false; cancelAnimationFrame(holdRaf); $('rw-hold-fill').style.transform = 'scaleX(0)'; $('rw-hold').style.setProperty('--k', 0); }
   function holdStep(now) {
     if (!holding || App.screen !== 'reward') { holding = false; return; }
     var k = Math.min(1, (now - holdT0) / 2000);
-    $('rw-hold-fill').style.transform = 'scaleX(' + k + ')';
+    $('rw-hold-fill').style.transform = 'scaleX(' + k + ')'; $('rw-hold').style.setProperty('--k', k.toFixed(3)); // v2.6 progress ring
     if (k >= 1) {
       holding = false;
       var rec = App.record;
@@ -416,26 +429,31 @@
     holdRaf = requestAnimationFrame(holdStep);
   }
 
-  // THANKS: last word of the name, lips from the registry lips(S) (else 06 Nu Rose), one line per game
+  // THANKS: last word of the name, the played product's photo, one line per game
   function toThanks(name) {
     var g = GAME[App.game] ? App.game : 'umpah', w = String(name || '').trim().split(/\s+/).pop();
-    var title = w ? T('thanks.name', { name: w.toUpperCase() }) : T('thanks.title'), el = $('th-title');
-    el.textContent = title;
-    el.style.fontSize = Math.min(110, Math.floor(110 * 20 / title.length)) + 'px'; // ~20 Handjet caps fit at 110 px
-    var S = App.session, k = 0;
-    try { k = GAME[g].lips && S ? GAME[g].lips(S) : 0; } catch (e) { } // a session of another game (debug) -> 06
-    $('th-lips').src = ASSETS.lips(k || 6);
+    // v2.6 postcard: "Cảm ơn" / italic "Name!" (own line), the played product's photo in the polaroid
+    $('th-hi').style.display = w ? '' : 'none';
+    $('th-title').textContent = w ? w + '!' : T('thanks.title');
+    $('th-lips').src = ASSETS.v26('photos/thanks_' + (lilac(g) ? 'rb' : 'nb') + '.jpg');
+    $('th-prod').textContent = GAME[g].product;
     $('th-sub').textContent = T(GAME[g].thanks);
     $('th-count').textContent = T('thanks.back', { s: App.settings.idleSec.thanks });
     show('thanks');
+    fitFont($('th-title'), 170);
   }
 
   // ---------------- idle ----------------
   function hideIdle() { App.idleWarn = false; overlay('o-idle', false); }
   function idleTick() {
     if ($('o-admin').classList.contains('active')) return;
+    if (App.screen === 'attract') { // v2.6: flyer shown over the attract video → back to the video after idleSec.select
+      var a = $('s-attract');
+      if (a.classList.contains('peek') && a.classList.contains('has-video') && (performance.now() - App.lastAct) / 1000 > App.settings.idleSec.select) App.home(); // video again + default language
+      return;
+    }
     var lim = App.settings.idleSec[App.screen];
-    if (!lim) return; // attract, games: no idle
+    if (!lim) return; // games: no idle
     var el = (performance.now() - App.lastAct) / 1000;
     // THANKS: no warning overlay; #th-count shows the real seconds left (lim → 1), any touch restarts it
     if (App.screen === 'thanks') { if (el > lim) App.home(); else $('th-count').textContent = T('thanks.back', { s: Math.max(1, Math.ceil(lim - el)) }); return; }
@@ -488,12 +506,14 @@
 
   $('s-attract').addEventListener('pointerdown', function () {
     if (!App.assetsReady) return; // images still preloading (max 8 s)
-    Sfx.unlock(); goFullscreen(); keepAwake(); Sfx.play('start'); toSelect();
+    Sfx.unlock(); goFullscreen(); keepAwake();
+    var s = $('s-attract');
+    if (s.classList.contains('has-video') && !s.classList.contains('peek')) { Sfx.play('start'); attractVideo(false); App.shownAt = performance.now(); } // the same touch's click never picks a ticket
   });
   stage.addEventListener('click', function (e) {
     // ignore the "ghost" click that belongs to the touch which opened this screen
     if (performance.now() - (App.shownAt || 0) < 450 && !e.target.closest('.overlay')) return;
-    var card = e.target.closest('.game-card'); if (card && App.screen === 'select') { Sfx.play('select'); toIntro(card.getAttribute('data-game')); return; }
+    var card = e.target.closest('.game-card'); if (card && App.screen === 'attract') { if (App.assetsReady) { Sfx.play('select'); toIntro(card.getAttribute('data-game')); } return; }
     var c = e.target.closest('.consent'); if (c && App.screen === 'form') { var k = c.getAttribute('data-consent') === 'gift' ? 'cg' : 'cm'; App.form[k] = !App.form[k]; $('form-err').textContent = ''; Sfx.play('key'); renderForm(); return; }
     var fld = e.target.closest('.field'); if (fld && App.screen === 'form') { App.form.focus = fld.getAttribute('data-field'); renderKb(); renderForm(); return; }
     var b = e.target.closest('[data-action]'); if (!b) return;
@@ -562,11 +582,11 @@
     App.applySettings();
     Sfx.probe(); // optional assets/audio/<key>.mp3|wav|ogg overrides
     ASSETS.preload(function () { App.assetsReady = true; });
-    try { ['40px Silkscreen', '40px SilkscreenR', '900 40px Handjet', '40px PixelifyB'].forEach(function (f) { document.fonts.load(f).catch(function () { }); }); } catch (e) { }
+    try { ['500 40px "Noto Serif Display Variable"', 'italic 500 40px "Noto Serif Display Variable"', '500 40px "Be Vietnam Pro"', '600 40px "Be Vietnam Pro"', '600 40px "IBM Plex Mono"', '600 40px VNfix'].forEach(function (f) { document.fonts.load(f).catch(function () { }); }); } catch (e) { }
     fit(); window.addEventListener('resize', fit);
     eachModule(function (m) { m.init(); }); Admin.init(); introInit();
     var v = $('attract-video');
-    v.addEventListener('canplay', function () { $('s-attract').classList.add('has-video'); if (App.screen === 'attract') { var p = v.play(); if (p && p.catch) p.catch(function () { }); } }, { once: true });
+    v.addEventListener('canplay', function () { $('s-attract').classList.add('has-video'); if (App.screen === 'attract' && !$('s-attract').classList.contains('peek')) { var p = v.play(); if (p && p.catch) p.catch(function () { }); } }, { once: true });
     v.addEventListener('error', function () { $('s-attract').classList.remove('has-video'); });
     v.src = 'assets/video/attract.mp4';
     var pv = $('promo-video'); // optional promo: the staff button appears only once the file loads
@@ -580,6 +600,6 @@
     show('attract');
     if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) { try { navigator.serviceWorker.register('sw.js').catch(function () { }); } catch (e) { } }
   }
-  App.debug = { toHowto: toReady, toReady: toReady, toIntro: toIntro, startGame: startGame, toForm: toForm, submitForm: submitForm, show: show, endGame: endGame, toThanks: toThanks, toReward: toReward };
+  App.debug = { C128: C128, toHowto: toReady, toReady: toReady, toIntro: toIntro, startGame: startGame, toForm: toForm, submitForm: submitForm, show: show, endGame: endGame, toThanks: toThanks, toReward: toReward };
   boot();
 })();

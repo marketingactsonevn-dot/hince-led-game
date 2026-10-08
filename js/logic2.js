@@ -199,12 +199,12 @@
   Taptap2Session.prototype.next = function () { if (!this.done() && this.results[this.i]) this.i++; };
 
   // =====================================================================
-  // UM-PAH! 1 (v2.3) — "Lật Cặp Môi": lip-photo memory game, 8 pairs on a 4x4 grid (slot = row * 4 + col)
+  // UM-PAH! 1 (v2.3, v2.6.1: 6 pairs) — "Lật Cặp Môi": lip-photo memory game, 6 pairs on a 3 cols x 4 rows grid (slot = row * 3 + col)
   // =====================================================================
   var MEMO = {
-    pairs: 8, cols: 4, rows: 4,
+    pairs: 6, cols: 3, rows: 4,
     peekMs: 3000, activeMs: 45000,                       // "Vừa" (normal)
-    points: { pair: 100, combo: 50, perSecondLeft: 10 }, // combo = 2nd+ match with no nomatch since the previous match
+    points: { pair: 140, combo: 60, perSecondLeft: 10 }, // combo = 2nd+ match with no nomatch since the previous match; v2.6.1: 6 pairs, a perfect run = 140 + 5 x 200 = 1140 (8 pairs gave 1150)
     max: 1500,                                           // score capped at max; gift tiers = % of max
     levels: { easy: { peekMs: 5000, activeMs: 60000 }, normal: { peekMs: 3000, activeMs: 45000 }, hard: { peekMs: 2000, activeMs: 35000 } }
   };

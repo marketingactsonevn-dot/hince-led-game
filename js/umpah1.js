@@ -1,11 +1,14 @@
 /* Um-Pah! 1 (v2.3) "Lật Cặp Môi" — lip-photo memory game. Logic: Logic2.Umpah1Session (deck, flip, hideOpen, complete, timeUp).
-   16 .m-card[data-i] (index = row * 4 + col) built here: .m-card (open lift / hit scale, hit area + 8 px) > .m-in (rotateY flip,
+   12 .m-card[data-i] (v2.6.1: 6 pairs, 3 cols x 4 rows, index = row * 3 + col) built here: .m-card (open lift / hit scale, hit area + 8 px) > .m-in (rotateY flip,
    Web Animations) > .mc.back (8-bit tube) + .mc.face (lip photo + shade name). Transform/opacity only.
    #s-umpah[data-st] = peek (wave up, timer frozen, wave down) | ready (taps accepted, timer runs) | anim (a pair resolving,
    timer paused) | over | off. Lip photos are colour references: opacity/transform only, never a filter. */
 (function () {
   'use strict';
-  var M = Logic2.MEMO, N = M.cols * M.rows;
+  var M = Logic2.MEMO, N = M.cols * M.rows, LIP = 'assets/v26/stickers/p_lips.svg'; // v2.6 progress sticker (grey = not yet)
+  // v2.6.1 grid: 3 cols x 4 rows of 260x320 cards, steps 288 / 342, centred (x 122..958, y 300..1646); = CSS #s-umpah .m-card
+  var GX = 122, GY = 300, CW = 260, CH = 320, SX = 288, SY = 342;
+  function cx(i) { return GX + SX * (i % M.cols); } function cy(i) { return GY + SY * Math.floor(i / M.cols); }
   var FLIP = 240, WAVE = 40, BANNER = 700, AGAIN = 400, BACK = 700, CLEAR = 1200, TIMEUP = 900, COMBO = 900;
   var el = {}, scr = null, grid = null, S = null, onEnd = null, state = 'off', raf = 0;
   var cards = [], prog = [], seg = [], timers = [], anims = [];
@@ -14,12 +17,12 @@
 
   function $(id) { return document.getElementById(id); }
   function fmt(n) { return n.toLocaleString('en-US'); }
+  function mmss(ms) { var s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + (s % 60); } // v2.6 HUD 0:31
   function after(fn, ms) { timers.push(setTimeout(fn, ms)); }
   function anim(node, kf, opt) { var a = node.animate(kf, opt); anims.push(a); return a; }
   function clearFx() { timers.forEach(clearTimeout); timers = []; anims.forEach(function (a) { a.cancel(); }); anims = []; }
   function setState(s) { state = s; scr.setAttribute('data-st', s); }
   function setReady() { readyAt = performance.now(); setState('ready'); }
-  function shadeName(key) { return ASSETS.NB_NAMES[ASSETS.NB.indexOf(key)].toUpperCase(); }
   function pop(node, delay) { // like .fx-pop
     anim(node, [{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 320, delay: delay || 0, easing: 'cubic-bezier(.3,1.6,.5,1)', fill: 'backwards' });
   }
@@ -35,17 +38,16 @@
     scr = $('s-umpah'); grid = $('m-grid');
     ['m-score', 'm-time', 'm-prog', 'm-line', 'm-combo', 'm-band', 'm-band-t', 'm-band-s', 'm-burst-a', 'm-burst-b'].forEach(function (id) { el[id] = $(id); });
     seg = $('m-seg').children;
-    var h = '', i, sp = ASSETS.px('px_sparkle_w');
-    for (i = 0; i < N; i++) {
-      h += '<div class="m-card" data-i="' + i + '" style="left:' + (60 + 244 * (i % M.cols)) + 'px;top:' + (360 + 296 * Math.floor(i / M.cols)) + 'px"><div class="m-in">' +
-        '<div class="mc back"><img class="tube" src="' + ASSETS.tube(5) + '" alt=""><img class="sp" src="' + sp + '" style="left:30px;top:52px" alt="">' +
-        '<img class="sp" src="' + sp + '" style="left:166px;top:150px" alt=""><img class="lg" src="assets/img/logo.png" alt=""></div>' +
-        '<div class="mc face"><img src="' + ASSETS.photo(5) + '" alt=""><span></span></div></div><i class="ok"></i></div>';
+    var h = '', i;
+    for (i = 0; i < N; i++) { // v2.6: back = paper card (azalea frame, Nu Rose −14°, "hince"), face = polaroid (lip photo + mono caption)
+      h += '<div class="m-card" data-i="' + i + '" style="left:' + cx(i) + 'px;top:' + cy(i) + 'px"><div class="m-in">' +
+        '<div class="mc back cb"><div class="in"></div><img src="' + ASSETS.nb('06_nu_rose') + '" alt=""><img class="lg" src="assets/img/logo.png" alt="hince"></div>' +
+        '<div class="mc face cf"><img src="' + ASSETS.photo(5) + '" alt=""><span></span></div></div><i class="ok"></i></div>';
     }
     grid.innerHTML = h;
     [].forEach.call(grid.children, function (n) { cards.push({ el: n, inn: n.firstChild, img: n.querySelector('.face img'), name: n.querySelector('.face span'), up: false, a: null }); });
     h = '';
-    for (i = 0; i < M.pairs; i++) h += '<img class="todo" src="' + ASSETS.lips(0) + '" alt="">';
+    for (i = 0; i < M.pairs; i++) h += '<img class="todo" src="' + LIP + '" alt="">';
     el['m-prog'].innerHTML = h; prog = el['m-prog'].children;
     scr.addEventListener('pointerdown', onDown);
     reset();
@@ -59,7 +61,7 @@
     paintTime(M.activeMs, M.activeMs);
     cards.forEach(function (c) { c.a = null; c.up = false; c.inn.style.transform = 'rotateY(0deg)'; c.el.className = 'm-card'; });
     grid.classList.remove('clear');
-    for (var i = 0; i < prog.length; i++) { prog[i].src = ASSETS.lips(0); prog[i].className = 'todo'; }
+    for (var i = 0; i < prog.length; i++) prog[i].className = 'todo';
     el['m-line'].textContent = I18N.t('memo.peek'); show(el['m-line']);
     hide(el['m-combo']); hide(el['m-band']);
     el['m-burst-a'].className = el['m-burst-b'].className = 'up-burst';
@@ -68,7 +70,7 @@
   function start(session, cbEnd) {
     reset();
     S = session; onEnd = cbEnd; used = 0;
-    cards.forEach(function (c, i) { var k = ASSETS.NB.indexOf(S.deck[i]); c.img.src = ASSETS.photo(k); c.name.textContent = ASSETS.NB_NAMES[k].toUpperCase(); c.el.setAttribute('data-shade', S.deck[i]); });
+    cards.forEach(function (c, i) { var k = ASSETS.NB.indexOf(S.deck[i]); c.img.src = ASSETS.photo(k); c.name.textContent = S.deck[i].slice(0, 2) + ' ' + ASSETS.NB_NAMES[k].toUpperCase(); c.el.setAttribute('data-shade', S.deck[i]); });
     paintTime(S.activeMs, S.activeMs);
     setState('peek');
     Sfx.play('peek'); wave(true);
@@ -96,7 +98,7 @@
     anim(c.el, f, { duration: 240 });
   }
   function burst(node, i) { // sticker group onto the card centre, restart the CSS burst
-    node.style.left = (60 + 244 * (i % M.cols) + 114) + 'px'; node.style.top = (360 + 296 * Math.floor(i / M.cols) + 140) + 'px';
+    node.style.left = (cx(i) + CW / 2) + 'px'; node.style.top = (cy(i) + CH / 2) + 'px';
     node.className = 'up-burst'; void node.offsetWidth; node.className = 'up-burst go';
   }
 
@@ -105,7 +107,7 @@
   function bank(now) { if (state === 'ready') used += now - readyAt; } // leaving 'ready'
   function paintTime(ms, total) { // DOM writes only on change
     var s = Math.max(0, Math.ceil(ms / 1000)), n = Math.max(0, Math.ceil(seg.length * ms / total));
-    if (s !== shownSec) { shownSec = s; el['m-time'].textContent = s; }
+    if (s !== shownSec) { shownSec = s; el['m-time'].textContent = mmss(ms); }
     if (n !== shownSeg) { shownSeg = n; for (var k = 0; k < seg.length; k++) seg[k].classList.toggle('on', k < n); }
   }
   function countTo(v) { cnt.from = cnt.val; cnt.to = v; cnt.t0 = performance.now(); }
@@ -152,8 +154,8 @@
     [a, c].forEach(function (x) { x.el.classList.remove('open'); x.el.classList.add('hit'); });
     Sfx.play('pah'); Sfx.play('kiss_color');
     burst(el['m-burst-a'], a.el.getAttribute('data-i')); burst(el['m-burst-b'], c.el.getAttribute('data-i'));
-    seq = banner('UM-PAH!', shadeName(r.shade));
-    lip.src = ASSETS.lips(ASSETS.NB.indexOf(r.shade) + 1); lip.className = '';
+    seq = banner('Um-Pah!', '+' + fmt(S.score - cnt.to)); // v2.6: stamp + points (mono azalea-deep)
+    lip.className = '';
     anim(lip, [{ transform: 'scale(1.25)' }, { transform: 'scale(1)' }], { duration: 400, easing: 'ease-out' });
     countTo(S.score);
     if (r.pairsFound === 1) hide(el['m-line']);
@@ -164,7 +166,7 @@
       if (r.done) clear(); else bannerOff(seq);
     }, BANNER);
   }
-  // all 8 pairs: cards blink 3x, CLEAR! + time bonus, clear fanfare, 1200 ms -> RESULT
+  // all pairs (6): cards blink 3x, CLEAR! + time bonus, clear fanfare, 1200 ms -> RESULT
   function clear() {
     setState('over');
     var add = S.complete(S.activeMs - used);
@@ -194,7 +196,7 @@
   function bannerOff(seq) { if (seq === bandSeq) fadeOut(el['m-band'], 200, function () { return seq === bandSeq; }); }
   function combo(n) {
     var c = el['m-combo'], seq = ++comboSeq;
-    c.textContent = 'COMBO x' + n; show(c); pop(c);
+    c.textContent = 'COMBO ×' + n; show(c); pop(c);
     Sfx.play('combo_up');
     after(function () { if (seq === comboSeq) fadeOut(c, 200, function () { return seq === comboSeq; }); }, COMBO);
   }

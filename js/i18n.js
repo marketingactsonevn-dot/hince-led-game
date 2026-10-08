@@ -67,7 +67,13 @@
     // Google Sheet status (sheet.js)
     'sheet.net': 'Chưa có mạng hoặc sai link', 'sheet.token': 'Sai mã bí mật', 'sheet.url': 'Chưa cài link',
     'sheet.notSaved': 'Google trả lỗi: chưa lưu được', 'sheet.gerr': 'Google trả lỗi: {e}', 'sheet.last': 'gửi lần cuối {t}',
-    'sheet.waiting': 'chờ gửi {n}', 'sheet.sent': 'Đã gửi hôm nay {d} · tổng {t}', 'sheet.connected': 'Đã kết nối · {n} dòng'
+    'sheet.waiting': 'chờ gửi {n}', 'sheet.sent': 'Đã gửi hôm nay {d} · tổng {t}', 'sheet.connected': 'Đã kết nối · {n} dòng',
+    // v2.6 paper reskin (production/I18N_COPY_v2_6.md, TASK v2.6 §6 word for word)
+    'attract.note': 'Chạm 1 mẩu giấy để chơi', 'attract.act.memo': 'LẬT THẺ', 'attract.act.kiss': 'KÉO SON', 'attract.act.tap': 'CHẠM NHỊP', 'attract.act.grab': 'GẮP SON',
+    'ready.eyebrow': 'CÁCH CHƠI · HOW TO PLAY', 'ready.count': 'CHUẨN BỊ…',
+    'hud.score': 'ĐIỂM', 'hud.time': 'THỜI GIAN', 'hud.combo': 'COMBO', 'hud.grab': 'GẮP', 't2.target': 'GẮP ĐÚNG MÀU', 't2.go': 'Gắp!',
+    'kiss.caption': 'MÀU NÀO ĐÂY? · KÉO SON LÊN MÔI', 'result.eyebrow': 'KẾT QUẢ · {game}', 'result.of': 'trên {max} điểm', 'result.level': 'Mức {n}',
+    'reward.row.game': 'TRÒ CHƠI', 'reward.row.score': 'ĐIỂM', 'reward.row.tier': 'MỨC QUÀ', 'reward.row.time': 'THỜI GIAN', 'reward.hi': 'Chúc mừng,', 'thanks.hi': 'Cảm ơn'
   };
   var en = {
     'attract.line': 'Tap to play & win a gift',
@@ -129,7 +135,12 @@
     'cc.pinWrong': 'Wrong PIN · try again', 'cc.pinChanged': 'PIN changed', 'cc.pinMismatch': 'The two PINs differ · try again',
     'sheet.net': 'No internet or wrong link', 'sheet.token': 'Wrong secret code', 'sheet.url': 'No link set',
     'sheet.notSaved': 'Google error: not saved', 'sheet.gerr': 'Google error: {e}', 'sheet.last': 'last sent {t}',
-    'sheet.waiting': 'waiting {n}', 'sheet.sent': 'Sent today {d} · total {t}', 'sheet.connected': 'Connected · {n} rows'
+    'sheet.waiting': 'waiting {n}', 'sheet.sent': 'Sent today {d} · total {t}', 'sheet.connected': 'Connected · {n} rows',
+    'attract.note': 'Tap a ticket to play', 'attract.act.memo': 'FLIP', 'attract.act.kiss': 'DRAG', 'attract.act.tap': 'TAP', 'attract.act.grab': 'GRAB',
+    'ready.eyebrow': 'HOW TO PLAY', 'ready.count': 'GET READY…',
+    'hud.score': 'SCORE', 'hud.time': 'TIME', 'hud.combo': 'COMBO', 'hud.grab': 'GRABS', 't2.target': 'GRAB THIS SHADE', 't2.go': 'Grab!',
+    'kiss.caption': 'WHICH SHADE? · DRAG IT ONTO THE LIPS', 'result.eyebrow': 'RESULT · {game}', 'result.of': 'out of {max} pts', 'result.level': 'Level {n}',
+    'reward.row.game': 'GAME', 'reward.row.score': 'SCORE', 'reward.row.tier': 'GIFT LEVEL', 'reward.row.time': 'TIME', 'reward.hi': 'Congrats,', 'thanks.hi': 'Thank you,'
   };
   var D = { vi: vi, en: en };
 
