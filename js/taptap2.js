@@ -12,7 +12,6 @@
   var balms = [], shads = [], trays = [], bulbs = null, timers = [], anims = [];
 
   function $(id) { return document.getElementById(id); }
-  function fmt(n) { return n.toLocaleString('en-US'); }
   function after(fn, ms) { timers.push(setTimeout(fn, ms)); }
   function anim(node, kf, opt) { var a = node.animate(kf, opt); anims.push(a); return a; }
   function clearFx() { timers.forEach(clearTimeout); timers = []; anims.forEach(function (a) { a.cancel(); }); anims = []; }
@@ -164,9 +163,9 @@
     b.style.transform = bt(tx, TRAY_Y, TRAY_S);
     anim(b, [{ transform: bt(j.x, -DOWN, 1), easing: 'ease-out' }, { transform: bt(mx, -DOWN - 90, 0.75), offset: 0.4, easing: 'ease-in' }, { transform: bt(tx, TRAY_Y, TRAY_S) }],
       { duration: T_LAND - T_OPEN });
-    el.score.textContent = fmt(S.score);
+    el.score.textContent = Logic.score100(S.score, S.max); // v2.7: HUD 0–100
     word('GOT IT!');
-    el.pts.firstChild.textContent = '+' + j.points;
+    el.pts.firstChild.textContent = '+' + (Logic.score100(S.score, S.max) - Logic.score100(S.score - j.points, S.max)); // v2.7: 0–100 scale
     // +points beside the claw on the roomier side; the sparkle burst mirrors with it, its x clamped so all 4 stickers stay inside the glass
     var r = j.x >= 560;
     el.pts.style.left = r ? '' : j.x + 160 + 'px'; el.pts.style.right = r ? 1080 - j.x + 160 + 'px' : '';

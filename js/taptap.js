@@ -152,7 +152,7 @@
     var sec = Math.ceil(remain / 1000), lit = Math.ceil(segEls.length * remain / T.durationMs);
     if (sec !== lastSec) { timeEl.textContent = Math.floor(sec / 60) + ':' + (sec % 60 < 10 ? '0' : '') + (sec % 60); lastSec = sec; } // v2.6 0:18
     if (lit !== lastLit) { for (var i = 0; i < segEls.length; i++) segEls[i].classList.toggle('on', i < lit); lastLit = lit; }
-    if (score !== lastScore) { scoreEl.textContent = score.toLocaleString('en-US'); lastScore = score; }
+    if (score !== lastScore) { scoreEl.textContent = Logic.score100(score, S.max); lastScore = score; } // v2.7: HUD 0–100
     if (combo !== lastCombo) { comboEl.textContent = '\u00D7' + combo; comboEl.classList.toggle('on', combo >= 5); lastCombo = combo; } // v2.6: the combo note always shows ×n
   }
 

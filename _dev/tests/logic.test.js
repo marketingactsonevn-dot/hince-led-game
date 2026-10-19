@@ -151,29 +151,95 @@ t('distribution (report)', () => {
 });
 
 console.log('REWARD & DATA');
-t('tiers', () => {
-  const th = { tier1: 40, tier2: 70 };
-  assert.strictEqual(L.tierFor(39.9, th), 0); assert.strictEqual(L.tierFor(40, th), 1);
-  assert.strictEqual(L.tierFor(69.9, th), 1); assert.strictEqual(L.tierFor(70, th), 2);
+// ---- v2.7: score 0–100, 3 tiers, event gift stock (TASK_v2_7 §2) ----
+const FULL = { hairTie: 500, mirror: 200, mini: 100, full: 50 };
+const TH = { mid: 70, high: 90 };
+t('score100: 0–100, rounded, clamped, 100 only for a perfect game', () => {
+  assert.strictEqual(L.score100(0, 1500), 0); assert.strictEqual(L.score100(1500, 1500), 100);
+  assert.strictEqual(L.score100(1499, 1500), 99); // rounds to 100 but is not perfect
+  assert.strictEqual(L.score100(1050, 1500), 70); assert.strictEqual(L.score100(1042, 1500), 69); // 69.47 → 69
+  assert.strictEqual(L.score100(1043, 1500), 70); // 69.53 → 70
+  assert.strictEqual(L.score100(-50, 1500), 0); assert.strictEqual(L.score100(2000, 1500), 100);
+  assert.strictEqual(L.score100(10, 0), 0);
+  // every game's own max (umpahMax, chartMax) maps to 100
+  assert.strictEqual(L.score100(L.umpahMax(), L.umpahMax()), 100);
+  const S = new L.TilesSession(77); assert.strictEqual(L.score100(S.max, S.max), 100);
 });
-t('stock downgrade / out of stock', () => {
-  const b = { phone: '0901234567', records: [], rule: 'perEvent', today: '2026-11-27' };
-  assert.deepStrictEqual(L.resolveReward(2, { ...b, stock: { tier1: 5, tier2: 0 } }), { tier: 1, reason: 'downgraded' });
-  assert.deepStrictEqual(L.resolveReward(2, { ...b, stock: { tier1: 0, tier2: 0 } }), { tier: 0, reason: 'outOfStock' });
-  assert.deepStrictEqual(L.resolveReward(1, { ...b, stock: { tier1: 0, tier2: 9 } }), { tier: 0, reason: 'outOfStock' });
-  assert.deepStrictEqual(L.resolveReward(1, { ...b, stock: { tier1: 1, tier2: 0 } }), { tier: 1, reason: '' });
+t('tierFor100: 0–69 → 1, 70–89 → 2, 90–100 → 3 (everyone gets a gift)', () => {
+  [0, 1, 50, 69].forEach(v => assert.strictEqual(L.tierFor100(v, TH), 1, v));
+  [70, 75, 89].forEach(v => assert.strictEqual(L.tierFor100(v, TH), 2, v));
+  [90, 95, 100].forEach(v => assert.strictEqual(L.tierFor100(v, TH), 3, v));
+  assert.strictEqual(L.tierFor100(60, { mid: 60, high: 80 }), 2); assert.strictEqual(L.tierFor100(80, { mid: 60, high: 80 }), 3);
 });
-t('duplicate rules', () => {
+t('pickGift: tier 3 → full, tier 2 → mini, tier 1 → hair tie / mirror', () => {
+  assert.deepStrictEqual(L.pickGift(3, FULL, () => 0.5), { tier: 3, giftKey: 'full', reason: '' });
+  assert.deepStrictEqual(L.pickGift(2, FULL, () => 0.5), { tier: 2, giftKey: 'mini', reason: '' });
+  assert.strictEqual(L.pickGift(1, FULL, () => 0).giftKey, 'hairTie');
+  assert.strictEqual(L.pickGift(1, FULL, () => 0.999).giftKey, 'mirror');
+  assert.strictEqual(L.pickGift(1, FULL, () => 0.5).reason, '');
+});
+t('pickGift fallback: full out → mini, mini out → hair tie / mirror, never above the tier', () => {
+  assert.deepStrictEqual(L.pickGift(3, { ...FULL, full: 0 }, () => 0.5), { tier: 2, giftKey: 'mini', reason: 'downgraded' });
+  const p = L.pickGift(3, { ...FULL, full: 0, mini: 0 }, () => 0.1);
+  assert.deepStrictEqual(p, { tier: 1, giftKey: 'hairTie', reason: 'downgraded' });
+  assert.strictEqual(L.pickGift(2, { ...FULL, mini: 0 }, () => 0.9).tier, 1);
+  // never higher than earned, whatever is left
+  for (let i = 0; i < 200; i++) {
+    const st = { hairTie: i % 3, mirror: i % 2, mini: i % 5, full: i % 7 };
+    for (const t of [1, 2, 3]) { const g = L.pickGift(t, st, Math.random); assert(g.tier <= t); if (g.giftKey) { assert.strictEqual(L.GIFT_TIER[g.giftKey], g.tier); assert(st[g.giftKey] > 0); } }
+  }
+});
+t('pickGift: one of hair tie / mirror gone → only the other; both gone → outOfStock', () => {
+  for (let i = 0; i < 50; i++) assert.strictEqual(L.pickGift(1, { ...FULL, hairTie: 0 }, Math.random).giftKey, 'mirror');
+  for (let i = 0; i < 50; i++) assert.strictEqual(L.pickGift(1, { ...FULL, mirror: 0 }, Math.random).giftKey, 'hairTie');
+  const none = { hairTie: 0, mirror: 0, mini: 0, full: 0 };
+  [1, 2, 3].forEach(t => assert.deepStrictEqual(L.pickGift(t, none, Math.random), { tier: 0, giftKey: '', reason: 'outOfStock' }));
+  // tier 3 with only tier-1 gifts left still gets one (downgraded); missing / negative counts = 0
+  assert.strictEqual(L.pickGift(3, { hairTie: 0, mirror: 3 }, Math.random).giftKey, 'mirror');
+  assert.strictEqual(L.pickGift(1, { hairTie: -4, mirror: 0 }, Math.random).reason, 'outOfStock');
+});
+t('pickGift tier 1: random weighted by stock left (10 000 seeded draws, ±3 %)', () => {
+  for (const [h, m] of [[500, 200], [200, 200], [30, 270], [1, 0]]) {
+    const r = L.rng(2027); let nh = 0;
+    for (let i = 0; i < 10000; i++) if (L.pickGift(1, { hairTie: h, mirror: m, mini: 0, full: 0 }, r).giftKey === 'hairTie') nh++;
+    const want = h / (h + m), got = nh / 10000;
+    assert(Math.abs(got - want) <= 0.03, `hairTie ${h}/${m}: ${got} vs ${want}`);
+  }
+});
+t('pickGift tier 1 drawing down the stock: hair tie and mirror run out together', () => {
+  const r = L.rng(7), st = { hairTie: 500, mirror: 200, mini: 0, full: 0 }; let lastH = -1, lastM = -1, n = 0;
+  while (st.hairTie + st.mirror > 0) { const g = L.pickGift(1, st, r); st[g.giftKey]--; n++; if (!st.hairTie && lastH < 0) lastH = n; if (!st.mirror && lastM < 0) lastM = n; }
+  assert.strictEqual(n, 700);
+  assert(Math.min(lastH, lastM) > 640, 'one gift ran out at ' + Math.min(lastH, lastM) + ' / 700'); // the first one runs out near the end
+});
+t('resolveReward: keeps the gift picked on RESULT; re-picks only when it is gone', () => {
+  const b = { phone: '0901234567', records: [], rule: 'perEvent', today: '2026-11-27', rng: () => 0.5 };
+  assert.deepStrictEqual(L.resolveReward(1, { ...b, stock: FULL, giftKey: 'mirror' }), { tier: 1, giftKey: 'mirror', reason: '' });
+  assert.deepStrictEqual(L.resolveReward(3, { ...b, stock: FULL, giftKey: 'full' }), { tier: 3, giftKey: 'full', reason: '' });
+  assert.deepStrictEqual(L.resolveReward(3, { ...b, stock: FULL, giftKey: 'mini' }), { tier: 2, giftKey: 'mini', reason: 'downgraded' }); // picked while full was out
+  assert.deepStrictEqual(L.resolveReward(1, { ...b, stock: { ...FULL, mirror: 0 }, giftKey: 'mirror' }), { tier: 1, giftKey: 'hairTie', reason: '' });
+  assert.deepStrictEqual(L.resolveReward(3, { ...b, stock: { ...FULL, full: 0 }, giftKey: 'full' }), { tier: 2, giftKey: 'mini', reason: 'downgraded' });
+  assert.deepStrictEqual(L.resolveReward(2, { ...b, stock: { hairTie: 0, mirror: 0, mini: 0, full: 9 }, giftKey: 'mini' }), { tier: 0, giftKey: '', reason: 'outOfStock' });
+  // a gift above the score tier is never given (tampered pick)
+  assert.deepStrictEqual(L.resolveReward(1, { ...b, stock: FULL, giftKey: 'full' }).tier, 1);
+  // no pick: picks now
+  assert.deepStrictEqual(L.resolveReward(2, { ...b, stock: FULL }), { tier: 2, giftKey: 'mini', reason: '' });
+});
+t('duplicate rules (one gift per phone)', () => {
   const rec = [{ phone: '0901234567', tier: 1, date: '2026-11-27', testMode: false }];
-  const st = { tier1: 9, tier2: 9 };
-  assert.strictEqual(L.resolveReward(1, { phone: '0901234567', records: rec, rule: 'perEvent', today: '2026-11-28', stock: st }).reason, 'duplicate');
-  assert.strictEqual(L.resolveReward(1, { phone: '0901234567', records: rec, rule: 'perDay', today: '2026-11-28', stock: st }).reason, '');
-  assert.strictEqual(L.resolveReward(1, { phone: '0901234567', records: rec, rule: 'perDay', today: '2026-11-27', stock: st }).reason, 'duplicate');
-  assert.strictEqual(L.resolveReward(1, { phone: '0901234567', records: rec, rule: 'none', today: '2026-11-27', stock: st }).reason, '');
-  const testRec = [{ ...rec[0], testMode: true }];
-  assert.strictEqual(L.resolveReward(1, { phone: '0901234567', records: testRec, rule: 'perEvent', today: '2026-11-27', stock: st }).reason, '');
-  const noGift = [{ ...rec[0], tier: 0 }];
-  assert.strictEqual(L.resolveReward(1, { phone: '0901234567', records: noGift, rule: 'perEvent', today: '2026-11-27', stock: st }).reason, '');
+  const o = { phone: '0901234567', records: rec, stock: FULL, giftKey: 'mini' };
+  assert.deepStrictEqual(L.resolveReward(2, { ...o, rule: 'perEvent', today: '2026-11-28' }), { tier: 0, giftKey: '', reason: 'duplicate' });
+  assert.strictEqual(L.resolveReward(2, { ...o, rule: 'perDay', today: '2026-11-28' }).reason, '');
+  assert.strictEqual(L.resolveReward(2, { ...o, rule: 'perDay', today: '2026-11-27' }).reason, 'duplicate');
+  assert.strictEqual(L.resolveReward(2, { ...o, rule: 'none', today: '2026-11-27' }).reason, '');
+  assert.strictEqual(L.resolveReward(2, { ...o, records: [{ ...rec[0], testMode: true }], rule: 'perEvent', today: '2026-11-27' }).reason, '');
+  assert.strictEqual(L.resolveReward(2, { ...o, records: [{ ...rec[0], tier: 0 }], rule: 'perEvent', today: '2026-11-27' }).reason, '');
+  // duplicate wins over out of stock
+  assert.strictEqual(L.resolveReward(2, { ...o, stock: {}, rule: 'perEvent', today: '2026-11-27' }).reason, 'duplicate');
+});
+t('Sheet columns unchanged in v2.7 (CSV_COLS)', () => {
+  assert.deepStrictEqual(L.CSV_COLS, ['createdAt', 'date', 'game', 'score', 'maxScore', 'scorePct', 'tier', 'giftName', 'rewardCode', 'reason',
+    'name', 'phone', 'consentGift', 'consentMarketing', 'redeemed', 'redeemedAt', 'testMode', 'seed', 'appVersion', 'id', 'difficulty', 'kiosk', 'lang']);
 });
 t('phone validation', () => {
   ['0901234567', '0381234567', '0561234567', '0771234567', '0881234567'].forEach(p => assert(L.validPhone(p), p));
