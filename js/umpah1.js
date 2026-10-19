@@ -16,7 +16,7 @@
   var cnt = { from: 0, to: 0, val: 0, t0: 0 }, bonus = null; // bonus: CLEAR! '+<n>' count-in
 
   function $(id) { return document.getElementById(id); }
-  function fmt(n) { return n.toLocaleString('en-US'); }
+  function s100(raw) { return Logic.score100(raw, S ? S.max : 0); } // v2.7: the HUD shows the score 0–100; the session keeps raw points
   function mmss(ms) { var s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + (s % 60); } // v2.6 HUD 0:31
   function after(fn, ms) { timers.push(setTimeout(fn, ms)); }
   function anim(node, kf, opt) { var a = node.animate(kf, opt); anims.push(a); return a; }
@@ -80,7 +80,7 @@
   }
   function halt() { cancelAnimationFrame(raf); timers.forEach(clearTimeout); timers = []; onEnd = null; setState('over'); }
   function stop() { halt(); reset(); } // every animation cancelled, no timer left: no callback fires later
-  function finish() { var cb = onEnd; halt(); el['m-score'].textContent = fmt(S.score); if (cb) cb(S); }
+  function finish() { var cb = onEnd; halt(); el['m-score'].textContent = s100(S.score); if (cb) cb(S); }
 
   // ---------- cards ----------
   // flip card c face-up (true) / face-down: inner wrapper rotateY over 240 ms (after delay ms); a running flip the other way
@@ -115,9 +115,9 @@
     raf = requestAnimationFrame(frame);
     if (cnt.val !== cnt.to) {
       var k = Math.max(0, Math.min(1, (now - cnt.t0) / 400)), v = k >= 1 ? cnt.to : Math.round(cnt.from + (cnt.to - cnt.from) * (1 - Math.pow(1 - k, 3)));
-      if (v !== cnt.val) { cnt.val = v; el['m-score'].textContent = fmt(v); }
+      if (v !== cnt.val) { cnt.val = v; el['m-score'].textContent = s100(v); }
     }
-    if (bonus) { var kb = Math.max(0, Math.min(1, (now - bonus.t0) / 400)); el['m-band-s'].textContent = '+' + fmt(Math.round(bonus.to * kb)); if (kb >= 1) bonus = null; }
+    if (bonus) { var kb = Math.max(0, Math.min(1, (now - bonus.t0) / 400)); el['m-band-s'].textContent = '+' + (s100(bonus.base + Math.round(bonus.to * kb)) - s100(bonus.base)); if (kb >= 1) bonus = null; }
     if (state !== 'ready') return;
     var ms = left(Math.max(now, readyAt)); paintTime(ms, S.activeMs);
     if (ms <= 0) timeUp(now);
@@ -154,7 +154,7 @@
     [a, c].forEach(function (x) { x.el.classList.remove('open'); x.el.classList.add('hit'); });
     Sfx.play('pah'); Sfx.play('kiss_color');
     burst(el['m-burst-a'], a.el.getAttribute('data-i')); burst(el['m-burst-b'], c.el.getAttribute('data-i'));
-    seq = banner('Um-Pah!', '+' + fmt(S.score - cnt.to)); // v2.6: stamp + points (mono azalea-deep)
+    seq = banner('Um-Pah!', '+' + (s100(S.score) - s100(cnt.to))); // v2.6: stamp + points (mono azalea-deep); v2.7 on the 0–100 scale
     lip.className = '';
     anim(lip, [{ transform: 'scale(1.25)' }, { transform: 'scale(1)' }], { duration: 400, easing: 'ease-out' });
     countTo(S.score);
@@ -172,7 +172,7 @@
     var add = S.complete(S.activeMs - used);
     grid.classList.add('clear');
     banner('CLEAR!', add ? '+0' : ''); // the rAF counts it in with the score (runs until finish)
-    if (add) bonus = { to: add, t0: performance.now() };
+    if (add) bonus = { to: add, base: S.score - add, t0: performance.now() };
     countTo(S.score);
     Sfx.play('clear');
     after(finish, CLEAR);

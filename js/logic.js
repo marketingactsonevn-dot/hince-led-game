@@ -266,29 +266,56 @@
   // =====================================================================
   function pct(score, max) { return max > 0 ? Math.round(1000 * score / max) / 10 : 0; }
 
-  // thresholds: {tier1: pct, tier2: pct}
-  function tierFor(scorePct, th) {
-    if (scorePct >= th.tier2) return 2;
-    if (scorePct >= th.tier1) return 1;
-    return 0;
+  // ---------- v2.7: score 0–100 + 3 gift tiers + event gift stock ----------
+  // score100: what the customer sees (HUD, result, receipt). 100 only for a perfect game (raw === max).
+  function score100(raw, max) {
+    if (!(max > 0)) return 0;
+    var s = clamp(Math.round(100 * raw / max), 0, 100);
+    return (s === 100 && raw < max) ? 99 : s;
+  }
+  // th = {mid, high} (Control Center, default 70 / 90): 1 = Hair Tie / Heart Mirror, 2 = Nu Blur Tint Mini, 3 = Nu Blur Tint
+  function tierFor100(s, th) {
+    if (s >= th.high) return 3;
+    if (s >= th.mid) return 2;
+    return 1;
+  }
+  var GIFT_KEYS = ['hairTie', 'mirror', 'mini', 'full'];
+  var GIFT_TIER = { hairTie: 1, mirror: 1, mini: 2, full: 3 };
+  function left(stock, k) { return Math.max(0, (stock && stock[k]) | 0); }
+  // gift for a tier from the event stock {hairTie, mirror, mini, full}: full → mini → Hair Tie / Mirror; never above the tier.
+  // Tier 1: Hair Tie or Mirror at random, weighted by what is left (both run out together). r = rng() → [0, 1).
+  // Returns {tier, giftKey, reason}: reason '' | 'downgraded' (a lower tier than earned) | 'outOfStock' (tier 0, nothing left)
+  function pickGift(tier, stock, r) {
+    tier = clamp(tier | 0, 1, 3);
+    for (var t = tier; t >= 1; t--) {
+      var key = '';
+      if (t === 3 && left(stock, 'full')) key = 'full';
+      else if (t === 2 && left(stock, 'mini')) key = 'mini';
+      else if (t === 1) {
+        var h = left(stock, 'hairTie'), m = left(stock, 'mirror');
+        if (h + m) key = (r || Math.random)() * (h + m) < h ? 'hairTie' : 'mirror';
+      }
+      if (key) return { tier: t, giftKey: key, reason: t < tier ? 'downgraded' : '' };
+    }
+    return { tier: 0, giftKey: '', reason: 'outOfStock' };
   }
 
-  // Applies duplicate rule + stock. Returns {tier, reason}
-  // reason: '' | 'duplicate' | 'outOfStock' | 'downgraded'
-  function resolveReward(tier, opts) {
-    // opts: {phone, records, rule:'perEvent'|'perDay'|'none', today, stock:{tier1,tier2}}
-    if (tier === 0) return { tier: 0, reason: '' };
+  // At SUBMIT: duplicate rule, then the gift picked on RESULT (opts.giftKey) if it is still in stock; else a fresh pick from
+  // its tier down (stock changed meanwhile). Returns {tier, giftKey, reason}; reason '' | 'duplicate' | 'outOfStock' | 'downgraded'
+  function resolveReward(tierByScore, opts) {
+    // opts: {phone, records, rule:'perEvent'|'perDay'|'none', today, stock:{hairTie,mirror,mini,full}, giftKey, rng}
+    tierByScore = clamp(tierByScore | 0, 1, 3);
     if (opts.rule !== 'none') {
       var dup = (opts.records || []).some(function (r) {
         return !r.testMode && r.phone === opts.phone && r.tier > 0 && (opts.rule === 'perEvent' || r.date === opts.today);
       });
-      if (dup) return { tier: 0, reason: 'duplicate' };
+      if (dup) return { tier: 0, giftKey: '', reason: 'duplicate' };
     }
-    var st = opts.stock || { tier1: 0, tier2: 0 };
-    if (tier === 2 && st.tier2 > 0) return { tier: 2, reason: '' };
-    if (tier === 2 && st.tier1 > 0) return { tier: 1, reason: 'downgraded' };
-    if (tier === 1 && st.tier1 > 0) return { tier: 1, reason: '' };
-    return { tier: 0, reason: 'outOfStock' };
+    var k = opts.giftKey, kt = GIFT_TIER[k];
+    if (kt && kt <= tierByScore && left(opts.stock, k)) return { tier: kt, giftKey: k, reason: kt < tierByScore ? 'downgraded' : '' };
+    var p = pickGift(kt && kt <= tierByScore ? kt : tierByScore, opts.stock, opts.rng);
+    if (p.tier && p.tier < tierByScore) p.reason = 'downgraded';
+    return p;
   }
 
   function validPhone(p) { return /^0(3|5|7|8|9)\d{8}$/.test(p); }
@@ -329,7 +356,7 @@
     UMPAH: UMPAH, umpahRound: umpahRound, umpahMarker: umpahMarker, umpahZoneCenter: umpahZoneCenter,
     umpahJudge: umpahJudge, umpahPoints: umpahPoints, umpahMax: umpahMax, UmpahSession: UmpahSession,
     TILES: TILES, TILES_LEVELS: TILES_LEVELS, buildChart: buildChart, chartMax: chartMax, comboMult: comboMult, TilesSession: TilesSession,
-    pct: pct, tierFor: tierFor, resolveReward: resolveReward,
+    pct: pct, score100: score100, tierFor100: tierFor100, GIFT_KEYS: GIFT_KEYS, GIFT_TIER: GIFT_TIER, pickGift: pickGift, resolveReward: resolveReward,
     validPhone: validPhone, formatPhone: formatPhone, cleanName: cleanName, validName: validName,
     toCSV: toCSV, CSV_COLS: CSV_COLS, localDate: localDate
   };

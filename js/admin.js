@@ -75,14 +75,16 @@
     var one = deltas.length === 2, b = function (d) { return '<button class="cc-st" data-step="' + key + '" data-d="' + d + '">' + (one ? (d < 0 ? '-' : '+') : (d < 0 ? d : '+' + d)) + '</button>'; };
     return '<div class="cc-stp' + (one ? ' one' : '') + '">' + deltas.filter(function (d) { return d < 0; }).map(b).join('') + '<span class="v">' + value + '</span>' + deltas.filter(function (d) { return d > 0; }).map(b).join('') + '</div>';
   }
-  // ≈ points needed for a threshold at the game's current difficulty (only Tap-Tap! 1's max depends on it: registry maxBy)
-  function pts(g, v, d) { var G = App.GAME[g], m = (G.maxBy || {})[d] || G.max; return Math.ceil(v * m / 100); }
+  // v2.7 gifts: key order = Logic.GIFT_KEYS; row picture = the gift photo
+  var GK = ['hairTie', 'mirror', 'mini', 'full'];
+  function gpic(k) { return '<img class="cc-gimg" src="' + ASSETS.gift(k) + '" alt="">'; }
+  function gname(k) { var s = S(); return (s.gifts && s.gifts[k]) || window.DEFAULTS.gifts[k]; }
 
   function render() {
     if (mode !== 'panel') { renderPin(); return; }
     ov.classList.remove('pin');
     var keep = panel.scrollTop;
-    var s = S(), st = Store.stock(), recs = Store.records(), today = Logic.localDate(), G = App.GAME, order = App.GAME_ORDER;
+    var s = S(), st = Store.giftStock(), recs = Store.records(), today = Logic.localDate(), G = App.GAME, order = App.GAME_ORDER;
     var real = recs.filter(function (r) { return !r.testMode; }), tests = recs.length - real.length;
     var todayR = real.filter(function (r) { return r.date === today; });
     var cnt = function (arr, f) { return arr.filter(f).length; };
@@ -90,10 +92,11 @@
     var diff = s.difficulty || {}, h = '';
 
     // 1 HÔM NAY
-    h += sec(T('cc.today') + ' · ' + today, '<div class="cc-stat">' +
+    // v2.7: plays + gifts given today per gift (records with giftKey; stock is taken when the receipt prints)
+    var given = function (arr, k) { return cnt(arr, function (r) { return r.tier > 0 && r.giftKey === k; }); };
+    h += sec(T('cc.today') + ' · ' + today, '<div class="cc-stat five">' +
       '<div><b>' + todayR.length + '</b><span>' + T('cc.plays') + '</span></div>' +
-      '<div><b>' + cnt(todayR, function (r) { return r.tier === 1; }) + '</b><span>' + T('cc.giftsGiven', { n: 1, left: st.tier1 }) + '</span></div>' +
-      '<div><b>' + cnt(todayR, function (r) { return r.tier === 2; }) + '</b><span>' + T('cc.giftsGiven', { n: 2, left: st.tier2 }) + '</span></div></div>');
+      GK.map(function (k) { return '<div><b>' + given(todayR, k) + '</b><span>' + T('cc.giftsGiven', { g: T('cc.giftLbl.' + k), left: st[k] }) + '</span></div>'; }).join('') + '</div>');
 
     // 2 GAME · ĐỘ KHÓ (applies from the next game; the last playable game cannot be switched off)
     h += sec(T('cc.games'), box(order.map(function (g) {
@@ -103,32 +106,30 @@
         '</div>' + tg(on, 'data-game-toggle="' + g + '"') + '</div>';
     }).join('') + row(T('cc.intro'), tg(s.productIntro !== false, 'data-toggle="productIntro"'), 'intro')) + '<p class="cc-note">' + T('cc.gamesNote') + '</p>');
 
-    // 3 QUÀ
-    var q = '';
-    order.forEach(function (g) {
-      [1, 2].forEach(function (n) {
-        var v = s.thresholds[g]['tier' + n];
-        q += row(G[g].name + ' · ' + T('cc.level', { n: n }) + ' <span class="cc-pts" data-pts="' + g + '_' + n + '">' + T('cc.pts', { n: pts(g, v, diff[g]) }) + '</span>', stp('th_' + g + '_' + n, v + '%', [-5, -1, 1, 5]));
-      });
+    // 3 QUÀ (v2.7): event stock per gift (−10 −1 +1 +10), thresholds 70 / 90 on the 0–100 score, gift names VI / EN
+    var q = '<div class="cc-sub">' + T('cc.stockHead') + '</div>';
+    GK.forEach(function (k) {
+      q += row(gpic(k) + '<span class="cc-gl">' + esc(gname(k)) + '<span class="cc-pts">' + T('cc.given', { d: given(todayR, k), e: given(real, k) }) + '</span></span>',
+        stp('gs_' + k, st[k] + ' <small>' + T('cc.stockLeft') + '</small>', [-10, -1, 1, 10]), 'gs');
     });
-    q += row(T('cc.stockToday', { n: 1 }), stp('stock1', st.tier1, [-10, -1, 1, 10]));
-    q += row(T('cc.stockToday', { n: 2 }), stp('stock2', st.tier2, [-10, -1, 1, 10]));
-    q += row(T('cc.daily', { n: 1 }), stp('daily1', s.dailyStock.tier1, [-10, -1, 1, 10]));
-    q += row(T('cc.daily', { n: 2 }), stp('daily2', s.dailyStock.tier2, [-10, -1, 1, 10]));
+    q += row(T('cc.thMid') + '<span class="cc-pts">' + T('cc.thRange', { a: s.thresholds.mid, b: s.thresholds.high - 1 }) + ' · ' + T('cc.thLow', { n: s.thresholds.mid }) + '</span>', stp('th_mid', s.thresholds.mid, [-5, -1, 1, 5]), 'th');
+    q += row(T('cc.thHigh') + '<span class="cc-pts">' + T('cc.thRange', { a: s.thresholds.high, b: 100 }) + '</span>', stp('th_high', s.thresholds.high, [-5, -1, 1, 5]), 'th');
     var ge = s.giftsEn || {};
-    q += row(T('cc.giftName', { n: 1 }), '<input class="cc-in" id="a-g1" maxlength="60" autocomplete="off" value="' + esc(s.gifts.tier1) + '">', 'f');
-    q += row(T('cc.giftNameEn', { n: 1 }), '<input class="cc-in" id="a-g1en" maxlength="60" autocomplete="off" value="' + esc(ge.tier1) + '">', 'f');
-    q += row(T('cc.giftName', { n: 2 }), '<input class="cc-in" id="a-g2" maxlength="60" autocomplete="off" value="' + esc(s.gifts.tier2) + '">', 'f');
-    q += row(T('cc.giftNameEn', { n: 2 }), '<input class="cc-in" id="a-g2en" maxlength="60" autocomplete="off" value="' + esc(ge.tier2) + '">' + btn('saveGifts', T('cc.save')), 'f');
+    q += '<div class="cc-sub">' + T('cc.namesHead') + '</div>';
+    GK.forEach(function (k) { // one row per gift: VI name | EN name (empty EN = the VI name)
+      q += row(T('cc.giftLbl.' + k), '<input class="cc-in" id="a-gn-' + k + '" maxlength="60" autocomplete="off" placeholder="VI" value="' + esc(gname(k)) + '">' +
+        '<input class="cc-in" id="a-ge-' + k + '" maxlength="60" autocomplete="off" placeholder="EN" value="' + esc(ge[k]) + '">', 'nm');
+    });
+    q += row('<span class="cc-pts">' + T('cc.namesNote') + '</span>', btn('saveGifts', T('cc.save')));
     q += row(T('cc.perPhone'), '<div class="cc-seg w">' + [['perEvent', T('cc.perEvent')], ['perDay', T('cc.perDay')], ['none', T('cc.unlimited')]].map(function (o) {
       return '<button data-rule="' + o[0] + '"' + (s.duplicateRule === o[0] ? ' class="on"' : '') + '>' + o[1] + '</button>';
     }).join('') + '</div>');
     q += row(T('cc.formNoTier'), tg(s.requireFormForNoTier, 'data-toggle="requireFormForNoTier"'));
     var hist = order.map(function (g) {
       var arr = todayR.filter(function (r) { return r.game === g; }), b = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-      arr.forEach(function (r) { b[Math.min(9, Math.floor((r.scorePct || 0) / 10))]++; });
+      arr.forEach(function (r) { b[Math.min(9, Math.floor((r.scorePct || 0) / 10))]++; }); // scorePct = score 0–100
       var mx = Math.max.apply(null, b.concat([1]));
-      var t1 = cnt(arr, function (r) { return r.tierByScore >= 1; }), t2 = cnt(arr, function (r) { return r.tierByScore === 2; });
+      var t1 = cnt(arr, function (r) { return r.tierByScore >= 2; }), t2 = cnt(arr, function (r) { return r.tierByScore === 3; }); // v2.7 tiers 1 / 2 / 3
       return row(G[g].name + ' · ' + T('cc.playsN', { n: arr.length }) + '<span class="cc-pts">' + (arr.length ? T('cc.reach', { a: Math.round(100 * t1 / arr.length), b: Math.round(100 * t2 / arr.length) }) : T('cc.noPlays')) + '</span>',
         '<div class="cc-hist">' + b.map(function (v) { return '<i style="height:' + Math.round(100 * v / mx) + '%"></i>'; }).join('') + '</div>', 'h');
     }).join('');
@@ -191,9 +192,10 @@
     store(function (s) { s.sheetUrl = su; s.sheetToken = stk; s.kioskName = skn; });
     paintSheet(); // status depends on link + token; inputs and focus stay
   }
-  function saveGifts() {
-    var V = I18N.dict.vi, g1 = val('a-g1') || V['gift.t1'], g2 = val('a-g2') || V['gift.t2'], e1 = val('a-g1en'), e2 = val('a-g2en'); // empty EN = fall back to VI
-    store(function (s) { s.gifts.tier1 = g1.slice(0, 60); s.gifts.tier2 = g2.slice(0, 60); s.giftsEn = { tier1: e1.slice(0, 60), tier2: e2.slice(0, 60) }; });
+  function saveGifts() { // empty VI name = the default name; empty EN = falls back to VI
+    var D = window.DEFAULTS.gifts, g = {}, e = {};
+    GK.forEach(function (k) { g[k] = (val('a-gn-' + k) || D[k]).slice(0, 60); e[k] = val('a-ge-' + k).slice(0, 60); });
+    store(function (s) { s.gifts = g; s.giftsEn = e; });
   }
   // two-tap confirm (4 s) for destructive buttons
   function armed(name, fn) {
@@ -207,14 +209,13 @@
     if (t.hasAttribute('data-pin')) return onPin(t.getAttribute('data-pin'));
     if (t.hasAttribute('data-step')) {
       var key = t.getAttribute('data-step'), d = +t.getAttribute('data-d');
-      if (key === 'stock1' || key === 'stock2') { var st = Store.stock(); Store.setStock(st.tier1 + (key === 'stock1' ? d : 0), st.tier2 + (key === 'stock2' ? d : 0)); render(); return; }
+      if (key.indexOf('gs_') === 0) { var gk = key.slice(3), st = Store.giftStock(); Store.setGiftStock(gk, st[gk] + d); Store.log('stock ' + gk + ' ' + st[gk] + ' -> ' + Store.giftStock()[gk]); render(); return; }
       save(function (s) {
-        if (key === 'daily1') s.dailyStock.tier1 = Math.max(0, s.dailyStock.tier1 + d);
-        if (key === 'daily2') s.dailyStock.tier2 = Math.max(0, s.dailyStock.tier2 + d);
-        if (key.indexOf('th_') === 0) {
-          var p = key.split('_'), g = p[1], tier = 'tier' + p[2];
-          s.thresholds[g][tier] = Logic.clamp(s.thresholds[g][tier] + d, 5, 100);
-          if (s.thresholds[g].tier2 <= s.thresholds[g].tier1) { if (tier === 'tier1') s.thresholds[g].tier2 = Math.min(100, s.thresholds[g].tier1 + 5); else s.thresholds[g].tier1 = Math.max(5, s.thresholds[g].tier2 - 5); }
+        if (key === 'th_mid' || key === 'th_high') { // 5 ≤ mid < high ≤ 100: the other one moves to keep 5 points apart
+          var t = { mid: s.thresholds.mid, high: s.thresholds.high };
+          if (key === 'th_mid') { t.mid = Logic.clamp(t.mid + d, 5, 95); if (t.high <= t.mid) t.high = Math.min(100, t.mid + 5); }
+          else { t.high = Logic.clamp(t.high + d, 10, 100); if (t.mid >= t.high) t.mid = Math.max(5, t.high - 5); }
+          s.thresholds = t;
         }
         if (key === 'vol') s.volume = Logic.clamp(Math.round((s.volume + d / 100) * 100) / 100, 0, 1);
         if (key === 'bgmvol') s.bgmVolume = Logic.clamp(Math.round((s.bgmVolume + d / 100) * 100) / 100, 0, 1);
@@ -256,7 +257,7 @@
   // native inputs: typing keeps the panel open; leaving a field saves it without re-rendering (focus stays where the staff tabbed)
   function onChange(e) {
     var id = e.target.id || '';
-    if (id === 'a-g1' || id === 'a-g2' || id === 'a-g1en' || id === 'a-g2en') saveGifts();
+    if (id.indexOf('a-gn-') === 0 || id.indexOf('a-ge-') === 0) saveGifts();
     else if (id.indexOf('a-sheet-') === 0) saveSheet();
   }
 

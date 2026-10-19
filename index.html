@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#B6845D">
+<meta name="theme-color" content="#C99196">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>hince Pop-Up · Um-Pah! &amp; Tap-Tap!</title>
@@ -51,7 +51,7 @@
     <video id="attract-video" muted loop playsinline preload="auto"></video>
     <div class="abs paper at-note"><img src="assets/v26/paper/arrow.svg" alt=""><span class="disp it" data-i18n="attract.note"></span></div>
     <!-- staff corners (never start a game; app.js corner(): stopPropagation on pointerdown + click): ⚙ → PIN → Control Center, VI | EN, ▶ VIDEO (.on when the promo loads) -->
-    <button class="at-corner" id="cc-btn" aria-label="control center"><svg viewBox="0 0 24 24" fill="none" stroke="#7D6458" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg></button>
+    <button class="at-corner" id="cc-btn" aria-label="control center"><svg viewBox="0 0 24 24" fill="none" stroke="#7A5A5E" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg></button>
     <div class="lang-sw" id="lang-sw"><button data-lang="vi">VI</button><button data-lang="en">EN</button></div>
     <button class="at-corner" id="promo-btn" aria-label="promo video"><svg viewBox="0 0 10 12"><path d="M1 0.5 L9.5 6 L1 11.5 Z"/></svg>VIDEO</button>
   </section>
@@ -80,7 +80,7 @@
   <!-- app.js toReady(): data-story (registry story class) shows one .rd-grid; #ready-title / the 2.4 s flash in #ready-count = title + number badge (readyPair) -->
   <section class="screen v2" id="s-ready" data-game="umpah" data-story="rd-up">
     <div class="abs paper rd-book" id="ready-win">
-      <svg class="rd-spiral" viewBox="0 0 940 80"><g fill="none" stroke="#4C362B" stroke-width="7" stroke-linecap="round"><path d="M44 52C44 16 64 4 64 30v10M104 52c0-36 20-48 20-22v10M164 52c0-36 20-48 20-22v10M224 52c0-36 20-48 20-22v10M284 52c0-36 20-48 20-22v10M344 52c0-36 20-48 20-22v10M404 52c0-36 20-48 20-22v10M464 52c0-36 20-48 20-22v10M524 52c0-36 20-48 20-22v10M584 52c0-36 20-48 20-22v10M644 52c0-36 20-48 20-22v10M704 52c0-36 20-48 20-22v10M764 52c0-36 20-48 20-22v10M824 52c0-36 20-48 20-22v10M884 52c0-36 20-48 20-22v10"/></g><g fill="#DCCBC0"><circle cx="48" cy="52" r="9"/><circle cx="108" cy="52" r="9"/><circle cx="168" cy="52" r="9"/><circle cx="228" cy="52" r="9"/><circle cx="288" cy="52" r="9"/><circle cx="348" cy="52" r="9"/><circle cx="408" cy="52" r="9"/><circle cx="468" cy="52" r="9"/><circle cx="528" cy="52" r="9"/><circle cx="588" cy="52" r="9"/><circle cx="648" cy="52" r="9"/><circle cx="708" cy="52" r="9"/><circle cx="768" cy="52" r="9"/><circle cx="828" cy="52" r="9"/><circle cx="888" cy="52" r="9"/></g></svg>
+      <svg class="rd-spiral" viewBox="0 0 940 80"><g fill="none" stroke="#4A2F33" stroke-width="7" stroke-linecap="round"><path d="M44 52C44 16 64 4 64 30v10M104 52c0-36 20-48 20-22v10M164 52c0-36 20-48 20-22v10M224 52c0-36 20-48 20-22v10M284 52c0-36 20-48 20-22v10M344 52c0-36 20-48 20-22v10M404 52c0-36 20-48 20-22v10M464 52c0-36 20-48 20-22v10M524 52c0-36 20-48 20-22v10M584 52c0-36 20-48 20-22v10M644 52c0-36 20-48 20-22v10M704 52c0-36 20-48 20-22v10M764 52c0-36 20-48 20-22v10M824 52c0-36 20-48 20-22v10M884 52c0-36 20-48 20-22v10"/></g><g fill="#DEC8C9"><circle cx="48" cy="52" r="9"/><circle cx="108" cy="52" r="9"/><circle cx="168" cy="52" r="9"/><circle cx="228" cy="52" r="9"/><circle cx="288" cy="52" r="9"/><circle cx="348" cy="52" r="9"/><circle cx="408" cy="52" r="9"/><circle cx="468" cy="52" r="9"/><circle cx="528" cy="52" r="9"/><circle cx="588" cy="52" r="9"/><circle cx="648" cy="52" r="9"/><circle cx="708" cy="52" r="9"/><circle cx="768" cy="52" r="9"/><circle cx="828" cy="52" r="9"/><circle cx="888" cy="52" r="9"/></g></svg>
       <div class="rd-hd">
         <div class="rd-eb" data-i18n="ready.eyebrow"></div>
         <div class="rd-title" id="ready-title"></div>
@@ -195,7 +195,7 @@
     <div class="abs u2-prog" id="u2-prog"></div><!-- 10 p_lips stickers, built by umpah2.js -->
     <div class="abs u2-photo" id="u2-photo"><div class="cap" data-i18n="kiss.caption" data-fit></div><div class="phw"><img class="ph" src="assets/img/lips_photo/06_nu_rose.jpg" alt=""><img class="ph" src="assets/img/lips_photo/06_nu_rose.jpg" alt=""></div></div>
     <div class="tape" style="left:56px;top:300px;width:200px;transform:rotate(-40deg)"></div><div class="tape" style="left:826px;top:300px;width:200px;transform:rotate(36deg)"></div>
-    <svg class="abs u2-path" width="120" height="260" viewBox="0 0 120 260"><path d="M70 250 C 78 170 66 90 44 24" fill="none" stroke="#FBF4EC" stroke-width="6" stroke-dasharray="4 16" stroke-linecap="round"/><path d="M22 50 L42 18 L66 44" fill="none" stroke="#FBF4EC" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <svg class="abs u2-path" width="120" height="260" viewBox="0 0 120 260"><path d="M70 250 C 78 170 66 90 44 24" fill="none" stroke="#FBF3F0" stroke-width="6" stroke-dasharray="4 16" stroke-linecap="round"/><path d="M22 50 L42 18 L66 44" fill="none" stroke="#FBF3F0" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <div class="abs u2-shelf"></div>
     <div class="abs center u2-name" id="u2-name"></div>
     <div class="abs u2-ped" style="left:250px"></div><div class="abs u2-ped" style="left:540px"></div><div class="abs u2-ped" style="left:830px"></div>
@@ -260,9 +260,10 @@
     <div class="abs paper hint t2-btn"><i class="tape"></i><span class="disp it" data-i18n="t2.go"></span></div>
   </section>
 
-  <!-- ============ RESULT (v2.6 09_result: taped sheet, big serif score, meter with 2 cocoa ticks, gift voucher when tier >= 1) ============ -->
-  <!-- app.js showResult(): #s-result[data-tier] picks .res-got (tier 1/2) or .res-close (no tier); count-up + 14-cell meter; ticks #res-ico1/2 at the thresholds (%) -->
-  <section class="screen v2" id="s-result" data-tier="2">
+  <!-- ============ RESULT (v2.6 09_result: taped sheet, big serif score, meter with 2 cocoa ticks; v2.7: score 0–100 + gift reveal polaroid) ============ -->
+  <!-- app.js showResult(): #s-result[data-tier] 1/2/3 = .res-got + the gift polaroid #res-gift, 0 = .res-close (gifts all gone); count-up + 14-cell meter;
+       ticks #res-ico1/2 at the thresholds (70 / 90). data-fx 1/2/3 = celebration size (Hair Tie & Mirror / Mini / full-size); .rev = reveal, .rev-end = skipped to the end -->
+  <section class="screen v2" id="s-result" data-tier="2" data-fx="2">
     <div class="abs paper res-sheet">
       <div class="res-eb" id="res-eb"></div>
       <div class="disp res-score" id="res-score">0</div>
@@ -271,18 +272,32 @@
         <div class="res-ico" id="res-ico1"><b></b><span id="res-ml1"></span></div><div class="res-ico" id="res-ico2"><b></b><span id="res-ml2"></span></div></div>
       <div class="res-got">
         <div class="disp it res-line" data-i18n="result.youGet" data-fit></div>
-        <div class="res-vch"><div class="stub"><img src="assets/v26/stickers/p_gift.svg" alt=""></div><div class="main"><div class="k" data-i18n="result.gift"></div><div class="disp it lv" id="res-tier" data-fit></div><div class="br">hince Pop-Up Store</div></div></div>
       </div>
       <div class="res-close">
-        <div class="disp it res-line" data-i18n="game.close" data-fit></div>
-        <div class="res-need" id="res-need" data-fit></div>
+        <div class="disp it res-line" data-i18n="result.soldOut" data-fit></div>
+        <div class="res-need" data-i18n="result.askStaff" data-fit></div>
       </div>
     </div>
     <div class="res-title" id="res-title"></div><!-- v2.4 title (JS writes it), not shown in v2.6 -->
-    <div class="tape res-gtape" style="left:200px;top:1060px;width:180px;height:50px;transform:rotate(-24deg)"></div>
     <div class="tape" style="left:420px;top:170px;transform:rotate(-2deg)"></div>
-    <img class="st res-gst" src="assets/v26/stickers/p_sparkle.svg" style="left:800px;top:1040px;width:100px;transform:rotate(12deg)" alt="">
     <img class="st" src="assets/v26/stickers/p_heart.svg" style="left:120px;top:1290px;width:96px;transform:rotate(-14deg)" alt="">
+    <!-- v2.7 gift reveal: paper confetti (built by app.js confetti()) behind the polaroid; the polaroid drops in, the photo bounces, a shine sweeps it once -->
+    <div class="rg-confetti" id="rg-confetti"></div>
+    <div class="res-gift" id="res-gift">
+      <div class="rg-drop">
+        <div class="paper rg-card">
+          <div class="rg-ph"><img id="rg-img" src="assets/v27/gifts/hair_tie.png" alt=""><i class="rg-shine"></i></div>
+          <div class="disp it rg-name" id="rg-name"></div>
+          <div class="rg-note" id="rg-note"></div>
+        </div>
+        <div class="tape rg-tape"></div>
+        <div class="rg-stw"><div class="stamp rg-stamp" id="rg-stamp"></div></div>
+        <!-- full-size only: sparkle stickers around the card -->
+        <img class="st rg-sp s1" src="assets/v26/stickers/p_sparkle.svg" alt=""><img class="st rg-sp s2" src="assets/v26/stickers/p_star.svg" alt="">
+        <img class="st rg-sp s3" src="assets/v26/stickers/p_sparkle.svg" alt=""><img class="st rg-sp s4" src="assets/v26/stickers/p_heart.svg" alt="">
+      </div>
+    </div>
+    <div class="abs center res-down" id="res-down"></div>
     <button class="abs btn res-btn" id="res-next" data-action="form"><span data-fit></span><span class="ar">→</span></button>
     <button class="abs btn res-btn" id="res-skip" data-action="thanks-skip"><span data-i18n="result.end"></span><span class="ar">→</span></button>
   </section>
@@ -310,7 +325,7 @@
   </section>
 
   <!-- ============ REWARD (v2.6 11_reward: printer + receipt) ============ -->
-  <!-- app.js toReward(): #s-reward.t0 = no gift (duplicate / out of stock); staff hold = 2 s, progress on #rw-hold (--k) -->
+  <!-- app.js toReward(): #s-reward.t0 = no gift (duplicate / out of stock); v2.7 .rw-gb = gift photo + name; staff hold = 2 s, progress on #rw-hold (--k) -->
   <section class="screen v2" id="s-reward" data-v="ok">
     <div class="abs rw-printer"><div class="lbl">HINCE · PRINT</div><div class="slot"></div></div>
     <div class="abs rw-wrap" id="rw-card"><div class="rw-rc">
@@ -318,10 +333,11 @@
       <div class="dash rw-d1"></div>
       <div class="disp rw-hi" id="rw-eyebrow" data-fit></div><div class="disp it rw-name" id="rw-name"></div>
       <div class="dash rw-d2"></div>
+      <!-- v2.7 gift block: photo ~160 px beside the gift name (staff check it against the shelf); lipstick gifts add the random-shade note -->
+      <div class="rw-gb"><div class="rw-gph"><img id="rw-gimg" src="assets/v27/gifts/hair_tie.png" alt=""></div><div class="rw-gtx"><div class="sm" data-i18n="reward.row.gift"></div><div class="disp it rw-gname" id="rw-gname"></div><div class="rw-gnote" id="rw-gnote"></div></div></div>
       <div class="rw-rows">
         <div class="row"><span data-i18n="reward.row.game"></span><i></i><span id="rw-r-game"></span></div>
         <div class="row"><span data-i18n="reward.row.score"></span><i></i><span id="rw-r-score"></span></div>
-        <div class="row"><span data-i18n="reward.row.tier"></span><i></i><span id="rw-tier"></span></div>
         <div class="row"><span data-i18n="reward.row.time"></span><i></i><span id="rw-r-time"></span></div>
       </div>
       <div class="dash rw-d3"></div>
@@ -335,7 +351,7 @@
     <img class="st" src="assets/v26/stickers/p_gift.svg" style="left:836px;top:500px;width:170px;transform:rotate(12deg);z-index:4" alt="">
     <img class="st" src="assets/v26/stickers/p_sparkle.svg" style="left:84px;top:640px;width:110px;transform:rotate(-10deg);z-index:4" alt="">
     <img class="st" src="assets/v26/stickers/p_star.svg" style="left:110px;top:1330px;width:90px;transform:rotate(-14deg);z-index:4" alt="">
-    <button class="abs rw-hold" id="rw-hold"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="none" stroke="rgba(76,54,43,.15)" stroke-width="5"/><circle class="rg" cx="24" cy="24" r="19" fill="none" stroke="#B8728D" stroke-width="5" stroke-linecap="round" transform="rotate(-90 24 24)"/></svg><i id="rw-hold-fill"></i><span data-i18n="reward.staff"></span></button>
+    <button class="abs rw-hold" id="rw-hold"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="none" stroke="rgba(74,47,51,.15)" stroke-width="5"/><circle class="rg" cx="24" cy="24" r="19" fill="none" stroke="#9C4A5E" stroke-width="5" stroke-linecap="round" transform="rotate(-90 24 24)"/></svg><i id="rw-hold-fill"></i><span data-i18n="reward.staff"></span></button>
     <button class="abs btn rw-done" id="rw-done" data-action="thanks"><span data-i18n="reward.finish"></span><span class="ar">→</span></button>
   </section>
 

@@ -17,7 +17,6 @@
   var used = 0, lipUsed = 0, readyAt = 0, drag = null, shownSec = -1, shownSeg = -1;
 
   function $(id) { return document.getElementById(id); }
-  function fmt(n) { return n.toLocaleString('en-US'); }
   function mmss(ms) { var s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + (s % 60); } // v2.6 HUD 0:31
   var LIP = 'assets/v26/stickers/p_lips.svg'; // v2.6 progress sticker
   function after(fn, ms) { timers.push(setTimeout(fn, ms)); }
@@ -208,10 +207,10 @@
   function impact(t, j, miss) {
     Sfx.play(miss ? 'kiss_this' : 'kiss_color');
     t.el.classList.remove('lift');
-    el['u2-score'].textContent = fmt(S.score);
+    el['u2-score'].textContent = Logic.score100(S.score, S.max); // v2.7: HUD 0–100
     anim(el['u2-photo'], [{ transform: 'rotate(-1.5deg) scale(.97)' }, { transform: 'rotate(-1.5deg) scale(1.02)', offset: 0.5 }, { transform: 'rotate(-1.5deg) scale(1)' }], { duration: 250, easing: 'ease-out' });
     el['u2-stamp-t'].textContent = miss ? 'THIS ONE!' : 'Um-Pah!'; pop(el['u2-stamp']);
-    if (!miss) { el['u2-pts'].firstChild.textContent = '+' + j.points; pop(el['u2-pts'], 80); }
+    if (!miss) { el['u2-pts'].firstChild.textContent = '+' + (Logic.score100(S.score, S.max) - Logic.score100(S.score - j.points, S.max)); pop(el['u2-pts'], 80); } // v2.7: points on the 0–100 scale
     el['u2-burst'].className = 'up-burst go'; // clearLip reset the class at the lip start = the CSS burst restarts
     puff.forEach(function (q) {
       anim(q.el, [{ transform: 'translate(0px,0px) scale(.6)', opacity: 0.9 }, { transform: 'translate(' + q.dx + 'px,' + q.dy + 'px) scale(1.2)', opacity: 0 }],

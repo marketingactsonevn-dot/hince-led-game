@@ -1,7 +1,8 @@
 /* Local storage layer — every access is wrapped so storage errors never crash the kiosk. */
 (function () {
   'use strict';
-  var K = { settings: 'hince_led_settings_v1', records: 'hince_led_records_v1', stock: 'hince_led_stock_v1', counter: 'hince_led_counter_v1', logs: 'hince_led_logs_v1' };
+  var K = { settings: 'hince_led_settings_v1', records: 'hince_led_records_v1', stock: 'hince_led_stock_v1', gifts: 'hince_led_gifts_v27', counter: 'hince_led_counter_v1', logs: 'hince_led_logs_v1' };
+  // stock: v2.6 daily stock {date, tier1, tier2} (read once to migrate, then removed); gifts: v2.7 event stock {hairTie, mirror, mini, full}
   var memory = {}; // fallback if localStorage is unavailable
 
   function read(key, fallback) {
@@ -42,8 +43,21 @@
     return d;
   }
 
+  // v2.7: settings saved by v2.6 carry per-game % thresholds {umpah:{tier1,tier2}…}, dailyStock and tier1/tier2 gift names;
+  // they are dropped once (the v2.7 defaults apply: 70 / 90, the four gift names). Other saved settings are kept.
+  function migrate(saved) {
+    if (!saved || typeof saved !== 'object') return saved;
+    var ch = false, th = saved.thresholds;
+    if (th && (typeof th.mid !== 'number' || typeof th.high !== 'number')) { delete saved.thresholds; ch = true; }
+    if (saved.dailyStock) { delete saved.dailyStock; ch = true; }
+    if (saved.gifts && ('tier1' in saved.gifts || 'tier2' in saved.gifts)) { delete saved.gifts; delete saved.giftsEn; ch = true; }
+    if (ch) { write(K.settings, saved); log('settings migrated to v2.7 (thresholds 70/90, gift names)'); }
+    return saved;
+  }
+  var GK = ['hairTie', 'mirror', 'mini', 'full'];
+
   var Store = {
-    settings: function () { var o = deepMerge(base(), read(K.settings, {})); o.appVersion = window.DEFAULTS.appVersion; return o; }, // version follows the code, never a stale saved value
+    settings: function () { var o = deepMerge(base(), migrate(read(K.settings, {}))); o.appVersion = window.DEFAULTS.appVersion; return o; }, // version follows the code, never a stale saved value
     saveSettings: function (s) {
       // persist the whole object, except LOCAL_KEYS still equal to config.local.js/defaults (so a later config.local.js edit applies)
       var b = base(), o = {};
@@ -66,14 +80,21 @@
     // v2.3 Control Center "xoá lượt test": drops only testMode records (real records, stock, counters untouched)
     clearTestRecords: function () { var all = Store.records(), keep = all.filter(function (r) { return !r.testMode; }); write(K.records, keep); log('test records cleared ' + (all.length - keep.length)); return all.length - keep.length; },
 
-    // stock for today; auto refills to daily default when the date changes
-    stock: function () {
-      var today = Logic.localDate(), s = read(K.stock, null), def = Store.settings().dailyStock;
-      if (!s || s.date !== today) { s = { date: today, tier1: def.tier1, tier2: def.tier2 }; write(K.stock, s); }
-      return s;
+    // v2.7 event gift stock {hairTie, mirror, mini, full}: no daily refill. First run of v2.7 (also on a v2.6 kiosk that has
+    // {date, tier1, tier2}): starts from DEFAULTS.giftStock, the old counts are not carried over.
+    giftStock: function () {
+      var g = read(K.gifts, null), d = window.DEFAULTS.giftStock, o = {};
+      if (!g || typeof g !== 'object') {
+        var old = read(K.stock, null);
+        g = {}; GK.forEach(function (k) { g[k] = d[k]; });
+        write(K.gifts, g);
+        if (old) { try { window.localStorage.removeItem(K.stock); } catch (e) { } delete memory[K.stock]; log('stock migrated v2.6 ' + JSON.stringify(old) + ' -> v2.7 ' + JSON.stringify(g)); }
+      }
+      GK.forEach(function (k) { o[k] = Math.max(0, (g[k] | 0)); });
+      return o;
     },
-    setStock: function (t1, t2) { var s = Store.stock(); s.tier1 = Math.max(0, t1 | 0); s.tier2 = Math.max(0, t2 | 0); write(K.stock, s); return s; },
-    takeStock: function (tier) { var s = Store.stock(); var k = 'tier' + tier; if (s[k] > 0) s[k]--; write(K.stock, s); return s; },
+    setGiftStock: function (k, n) { var g = Store.giftStock(); if (GK.indexOf(k) < 0) return g; g[k] = Math.max(0, n | 0); write(K.gifts, g); return g; },
+    takeGift: function (k) { var g = Store.giftStock(); if (g[k] > 0) { g[k]--; write(K.gifts, g); } return g; },
 
     nextCode: function (prefix) {
       var today = Logic.localDate(), c = read(K.counter, {});
