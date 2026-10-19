@@ -260,9 +260,10 @@
     <div class="abs paper hint t2-btn"><i class="tape"></i><span class="disp it" data-i18n="t2.go"></span></div>
   </section>
 
-  <!-- ============ RESULT (v2.6 09_result: taped sheet, big serif score, meter with 2 cocoa ticks, gift voucher when tier >= 1) ============ -->
-  <!-- app.js showResult(): #s-result[data-tier] picks .res-got (tier 1/2) or .res-close (no tier); count-up + 14-cell meter; ticks #res-ico1/2 at the thresholds (%) -->
-  <section class="screen v2" id="s-result" data-tier="2">
+  <!-- ============ RESULT (v2.6 09_result: taped sheet, big serif score, meter with 2 cocoa ticks; v2.7: score 0–100 + gift reveal polaroid) ============ -->
+  <!-- app.js showResult(): #s-result[data-tier] 1/2/3 = .res-got + the gift polaroid #res-gift, 0 = .res-close (gifts all gone); count-up + 14-cell meter;
+       ticks #res-ico1/2 at the thresholds (70 / 90). data-fx 1/2/3 = celebration size (Hair Tie & Mirror / Mini / full-size); .rev = reveal, .rev-end = skipped to the end -->
+  <section class="screen v2" id="s-result" data-tier="2" data-fx="2">
     <div class="abs paper res-sheet">
       <div class="res-eb" id="res-eb"></div>
       <div class="disp res-score" id="res-score">0</div>
@@ -271,18 +272,32 @@
         <div class="res-ico" id="res-ico1"><b></b><span id="res-ml1"></span></div><div class="res-ico" id="res-ico2"><b></b><span id="res-ml2"></span></div></div>
       <div class="res-got">
         <div class="disp it res-line" data-i18n="result.youGet" data-fit></div>
-        <div class="res-vch"><div class="stub"><img src="assets/v26/stickers/p_gift.svg" alt=""></div><div class="main"><div class="k" data-i18n="result.gift"></div><div class="disp it lv" id="res-tier" data-fit></div><div class="br">hince Pop-Up Store</div></div></div>
       </div>
       <div class="res-close">
-        <div class="disp it res-line" data-i18n="game.close" data-fit></div>
-        <div class="res-need" id="res-need" data-fit></div>
+        <div class="disp it res-line" data-i18n="result.soldOut" data-fit></div>
+        <div class="res-need" data-i18n="result.askStaff" data-fit></div>
       </div>
     </div>
     <div class="res-title" id="res-title"></div><!-- v2.4 title (JS writes it), not shown in v2.6 -->
-    <div class="tape res-gtape" style="left:200px;top:1060px;width:180px;height:50px;transform:rotate(-24deg)"></div>
     <div class="tape" style="left:420px;top:170px;transform:rotate(-2deg)"></div>
-    <img class="st res-gst" src="assets/v26/stickers/p_sparkle.svg" style="left:800px;top:1040px;width:100px;transform:rotate(12deg)" alt="">
     <img class="st" src="assets/v26/stickers/p_heart.svg" style="left:120px;top:1290px;width:96px;transform:rotate(-14deg)" alt="">
+    <!-- v2.7 gift reveal: paper confetti (built by app.js confetti()) behind the polaroid; the polaroid drops in, the photo bounces, a shine sweeps it once -->
+    <div class="rg-confetti" id="rg-confetti"></div>
+    <div class="res-gift" id="res-gift">
+      <div class="rg-drop">
+        <div class="paper rg-card">
+          <div class="rg-ph"><img id="rg-img" src="assets/v27/gifts/hair_tie.png" alt=""><i class="rg-shine"></i></div>
+          <div class="disp it rg-name" id="rg-name"></div>
+          <div class="rg-note" id="rg-note"></div>
+        </div>
+        <div class="tape rg-tape"></div>
+        <div class="rg-stw"><div class="stamp rg-stamp" id="rg-stamp"></div></div>
+        <!-- full-size only: sparkle stickers around the card -->
+        <img class="st rg-sp s1" src="assets/v26/stickers/p_sparkle.svg" alt=""><img class="st rg-sp s2" src="assets/v26/stickers/p_star.svg" alt="">
+        <img class="st rg-sp s3" src="assets/v26/stickers/p_sparkle.svg" alt=""><img class="st rg-sp s4" src="assets/v26/stickers/p_heart.svg" alt="">
+      </div>
+    </div>
+    <div class="abs center res-down" id="res-down"></div>
     <button class="abs btn res-btn" id="res-next" data-action="form"><span data-fit></span><span class="ar">→</span></button>
     <button class="abs btn res-btn" id="res-skip" data-action="thanks-skip"><span data-i18n="result.end"></span><span class="ar">→</span></button>
   </section>
@@ -310,7 +325,7 @@
   </section>
 
   <!-- ============ REWARD (v2.6 11_reward: printer + receipt) ============ -->
-  <!-- app.js toReward(): #s-reward.t0 = no gift (duplicate / out of stock); staff hold = 2 s, progress on #rw-hold (--k) -->
+  <!-- app.js toReward(): #s-reward.t0 = no gift (duplicate / out of stock); v2.7 .rw-gb = gift photo + name; staff hold = 2 s, progress on #rw-hold (--k) -->
   <section class="screen v2" id="s-reward" data-v="ok">
     <div class="abs rw-printer"><div class="lbl">HINCE · PRINT</div><div class="slot"></div></div>
     <div class="abs rw-wrap" id="rw-card"><div class="rw-rc">
@@ -318,10 +333,11 @@
       <div class="dash rw-d1"></div>
       <div class="disp rw-hi" id="rw-eyebrow" data-fit></div><div class="disp it rw-name" id="rw-name"></div>
       <div class="dash rw-d2"></div>
+      <!-- v2.7 gift block: photo ~160 px beside the gift name (staff check it against the shelf); lipstick gifts add the random-shade note -->
+      <div class="rw-gb"><div class="rw-gph"><img id="rw-gimg" src="assets/v27/gifts/hair_tie.png" alt=""></div><div class="rw-gtx"><div class="sm" data-i18n="reward.row.gift"></div><div class="disp it rw-gname" id="rw-gname"></div><div class="rw-gnote" id="rw-gnote"></div></div></div>
       <div class="rw-rows">
         <div class="row"><span data-i18n="reward.row.game"></span><i></i><span id="rw-r-game"></span></div>
         <div class="row"><span data-i18n="reward.row.score"></span><i></i><span id="rw-r-score"></span></div>
-        <div class="row"><span data-i18n="reward.row.tier"></span><i></i><span id="rw-tier"></span></div>
         <div class="row"><span data-i18n="reward.row.time"></span><i></i><span id="rw-r-time"></span></div>
       </div>
       <div class="dash rw-d3"></div>

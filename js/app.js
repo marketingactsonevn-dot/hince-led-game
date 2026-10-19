@@ -51,9 +51,10 @@
     var p = function (n) { return (n < 10 ? '0' : '') + n; }, off = -d.getTimezoneOffset(), s = off >= 0 ? '+' : '-'; off = Math.abs(off);
     return Logic.localDate(d) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + s + p(Math.floor(off / 60)) + ':' + p(off % 60);
   }
-  function needPts(game, max, tier) { return Math.ceil(App.settings.thresholds[game]['tier' + tier] * max / 100); }
-  function tierOf(game, score, max) { return score >= needPts(game, max, 2) ? 2 : score >= needPts(game, max, 1) ? 1 : 0; }
-  App.needPts = needPts;
+  // v2.7: score 0–100 for every game, one pair of thresholds (settings.thresholds {mid, high}) → tier 1 / 2 / 3
+  function th() { var t = App.settings.thresholds || {}; return { mid: t.mid > 0 ? t.mid : 70, high: t.high > 0 ? t.high : 90 }; }
+  // stock the RESULT pick reads: the real event stock; test mode = a full virtual stock (nothing is counted)
+  function pickStock() { return App.settings.testMode ? window.DEFAULTS.giftStock : Store.giftStock(); }
   // shrink el's font-size from max px until the text fits its box width (and maxH px height when given); el must be visible
   function fitFont(el, max, maxH) {
     var fs = max; el.style.fontSize = fs + 'px';
@@ -61,7 +62,8 @@
   }
   // v2.4: settings with an English twin (<key>En); an empty EN value falls back to the Vietnamese one
   function txt(k) { var s = App.settings; return (en() && s[k + 'En']) || s[k]; }
-  function giftName(n) { var s = App.settings, e = en() && s.giftsEn && s.giftsEn['tier' + n]; return e || s.gifts['tier' + n]; }
+  function giftName(k) { var s = App.settings, e = en() && s.giftsEn && s.giftsEn[k]; return e || (s.gifts && s.gifts[k]) || window.DEFAULTS.gifts[k] || ''; }
+  function lipGift(k) { return k === 'mini' || k === 'full'; } // Nu Blur Tint gifts: the shade is random (note under the name)
   // phone: VN format exactly as before, or international '+' followed by 8–15 digits; duplicates compare digits only with +84 → 0
   function validPhoneAny(p) { return Logic.validPhone(p) || /^\+\d{8,15}$/.test(p); }
   function normPhone(p) { p = String(p || ''); var d = p.replace(/\D/g, ''); return p.slice(0, 3) === '+84' ? '0' + d.slice(2).replace(/^0+/, '') : d; } // +840901… = 0901…
@@ -250,47 +252,97 @@
     GAME[game].start(App.session);
   }
 
+  // v2.7: the gift is picked ONCE here (Logic.pickGift on the current stock) and kept until the receipt (resolveReward re-checks it)
   function endGame(S) {
-    var max = S.max, score = Math.min(S.score, S.max), tier = tierOf(App.game, score, max);
-    App.result = { game: App.game, score: score, max: max, pct: Logic.pct(score, max), tierByScore: tier, seed: S.seed, difficulty: S.difficulty };
+    var max = S.max, score = Math.min(S.score, S.max), s100 = Logic.score100(score, max), tier = Logic.tierFor100(s100, th());
+    App.result = { game: App.game, score: score, max: max, pct: s100, s100: s100, tierByScore: tier, pick: Logic.pickGift(tier, pickStock(), Math.random),
+      seed: S.seed, difficulty: S.difficulty };
     later(showResult, 600);
   }
 
-  // RESULT: title + labels by tier, score count-up (1.2 s ease-out), 14-cell bar, gift/crown under the tier thresholds
+  // RESULT (v2.7): score 0–100 count-up (1.2 s ease-out), 14-cell bar with ticks at the two thresholds; when the count lands,
+  // the gift reveal (gift polaroid drops in, photo bounce + shine, paper confetti, TRÚNG QUÀ! stamp). Celebration grows with the gift.
+  // #s-result[data-tier] 0 = gifts all gone; .rev = reveal running, .rev-end = final state (a tap skips there).
+  var FX = { hairTie: 1, mirror: 1, mini: 2, full: 3 }, CONF = { 1: 12, 2: 18, 3: 24 };
+  var CONF_COL = ['#EDD7D4', '#9C4A5E', '#F6DDCC', '#FFFBF9'];
+  var resFx = { on: false, skipAt: 0, t: [] };
   function num(n) { return n.toLocaleString(en() ? 'en-US' : 'vi-VN'); } // v2.6: 1.200 (VI) / 1,200 (EN)
+  function resFxEnd() {
+    var r = $('s-result'); resFx.t.forEach(clearTimeout); resFx.t = [];
+    if (r.classList.contains('rev')) r.classList.add('rev-end');
+    resFx.on = false;
+  }
+  // confetti: n paper bits / hearts / sparkles burst out of the card centre and fall slowly (CSS rgConf, transform + opacity only)
+  function confetti(n) {
+    var box = $('rg-confetti'), h = '', i, a, d, kind, col;
+    for (i = 0; i < n; i++) {
+      a = (i / n) * Math.PI * 2 + (Math.random() - 0.5) * 0.5; d = 240 + Math.random() * 260;
+      kind = i % 6 === 0 ? 'heart' : i % 6 === 3 ? 'spark' : 'bit'; col = CONF_COL[i % CONF_COL.length];
+      h += '<i class="cf-' + kind + '" style="--dx:' + Math.round(Math.cos(a) * d) + 'px;--dy:' + Math.round(Math.sin(a) * d * 0.8 - 160) + 'px;--fall:' + Math.round(260 + Math.random() * 220) + 'px;--r:' +
+        Math.round((Math.random() - 0.5) * 720) + 'deg;--d:' + Math.round(Math.random() * 120) + 'ms;' + (kind === 'bit' ? 'background:' + col + ';width:' + (16 + (i % 3) * 7) + 'px;height:' + (26 + (i % 4) * 7) + 'px' : '') + '"></i>';
+    }
+    box.innerHTML = h;
+  }
   function showResult() {
-    var r = App.result, g = App.game, t = r.tierByScore, dur = 1200;
-    var n1 = needPts(g, r.max, 1), n2 = needPts(g, r.max, 2), fin = num(r.score);
-    $('s-result').setAttribute('data-tier', t);
-    $('res-title').innerHTML = t ? 'LEVEL ' + t + '<br>CLEAR!' : 'SO<br>CLOSE!';
+    var r = App.result, g = App.game, p = r.pick || { tier: 0, giftKey: '' }, dur = 1200, t = th(), R = $('s-result');
+    var k = p.giftKey, lvl = FX[k] || 0;
+    resFxEnd(); R.classList.remove('rev', 'rev-end');
+    R.setAttribute('data-tier', p.tier ? p.tier : 0); R.setAttribute('data-fx', lvl); R.setAttribute('data-gift', k || '');
+    $('res-title').innerHTML = p.tier ? 'LEVEL ' + p.tier + '<br>CLEAR!' : 'SO<br>CLOSE!';
     $('res-eb').textContent = T('result.eyebrow', { game: GAME[g].name.toUpperCase() });
-    $('res-of').textContent = T('result.of', { max: num(r.max) });
-    $('res-tier').textContent = T('result.level', { n: t });
-    $('res-need').textContent = T('result.need', { n: Math.max(0, n1 - r.score).toLocaleString(en() ? 'en-US' : 'vi-VN') });
-    $('res-ico1').style.left = (100 * Math.min(1, n1 / r.max)).toFixed(2) + '%'; $('res-ml1').textContent = T('result.tier', { n: 1 }); // v2.6 cocoa ticks on the meter
-    $('res-ico2').style.left = (100 * Math.min(1, n2 / r.max)).toFixed(2) + '%'; $('res-ml2').textContent = T('result.tier', { n: 2 });
-    // cell i lights when the count-up passes (i + .5) / 14 of max (inverse of the ease-out below)
-    var cells = $('res-seg').children, lit = Math.round(14 * Math.min(1, r.score / r.max));
+    $('res-of').textContent = T('result.of', { max: 100 });
+    $('res-ico1').style.left = t.mid + '%'; $('res-ml1').textContent = T('result.tickMid', { n: t.mid }); // ticks at the thresholds (0–100 = the meter)
+    $('res-ico2').style.left = t.high + '%'; $('res-ml2').textContent = T('result.tickHigh', { n: t.high });
+    // cell i lights when the count-up passes (i + .5) / 14 of 100 (inverse of the ease-out below)
+    var cells = $('res-seg').children, lit = Math.round(14 * r.s100 / 100);
     for (var i = 0; i < cells.length; i++) {
       cells[i].className = i < lit ? 'on' : '';
-      cells[i].style.setProperty('--d', Math.round(dur * (1 - Math.pow(Math.max(0, 1 - (i + 0.5) * r.max / 14 / r.score), 1 / 3))) + 'ms');
+      cells[i].style.setProperty('--d', Math.round(dur * (1 - Math.pow(Math.max(0, 1 - (i + 0.5) * 100 / 14 / Math.max(1, r.s100)), 1 / 3))) + 'ms');
     }
-    var next = $('res-next'), skip = $('res-skip'), form = t > 0 || App.settings.requireFormForNoTier;
-    next.firstChild.textContent = T(t ? 'result.claim' : 'result.save');
+    // gift polaroid (filled now, revealed when the count lands)
+    if (k) {
+      $('rg-img').src = ASSETS.gift(k);
+      $('rg-name').textContent = giftName(k);
+      $('rg-note').textContent = lipGift(k) ? T('gift.shadeRandom') : '';
+      $('rg-stamp').textContent = T('result.win');
+      $('res-down').textContent = p.reason === 'downgraded' ? T('result.downgrade') : '';
+      confetti(CONF[lvl] || 12);
+    } else { $('rg-confetti').innerHTML = ''; $('res-down').textContent = ''; }
+    var next = $('res-next'), skip = $('res-skip'), form = p.tier > 0 || App.settings.requireFormForNoTier;
+    next.firstChild.textContent = T(p.tier ? 'result.claim' : 'result.save');
     next.style.display = form ? '' : 'none'; skip.style.display = form ? 'none' : '';
-    var el = $('res-score');
-    el.style.fontSize = (fin.length <= 5 ? 250 : Math.floor(250 * 5 / fin.length * 0.95)) + 'px'; // final string fits the sheet
+    var el = $('res-score'); $('res-seg').classList.remove('now');
+    el.style.fontSize = '250px';
     el.textContent = '0';
     show('result');
+    fitFont($('rg-name'), 54);
     var t0 = performance.now(), shown = '0';
+    resFx.on = true;
     (function step(now) {
-      if (App.screen !== 'result') return;
-      var k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3), txt = num(Math.round(r.score * e));
+      if (App.screen !== 'result' || resFx.skipAt > t0) return; // skipped: reveal() already wrote the final score
+      var kk = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - kk, 3), txt = String(Math.round(r.s100 * e));
       if (txt !== shown) { el.textContent = shown = txt; Sfx.play('count_tick'); } // Sfx rate-limits ticks to 60 ms
-      if (k < 1) requestAnimationFrame(step);
-      else Sfx.play(t === 2 ? 'win_t2' : t ? 'win_t1' : 'no_tier');
+      if (kk < 1) requestAnimationFrame(step);
+      else reveal(lvl, p.tier);
     })(t0);
   }
+  function reveal(lvl, tier) {
+    var R = $('s-result');
+    if (App.screen !== 'result' || R.classList.contains('rev')) return;
+    $('res-score').textContent = String(App.result.s100);
+    Sfx.play(tier >= 2 ? 'win_t2' : tier ? 'win_t1' : 'no_tier');
+    if (!tier) { resFx.on = false; return; }
+    void R.offsetWidth; R.classList.add('rev');
+    resFx.t.push(later(function () { resFx.on = false; }, 1900)); // longest piece (confetti) ends by then
+  }
+  // a tap while the score counts or the gift drops in: jump to the final state (that touch never presses NHẬN QUÀ)
+  $('s-result').addEventListener('pointerdown', function () {
+    if (App.screen !== 'result' || !resFx.on || performance.now() - (App.shownAt || 0) < 300) return;
+    resFx.skipAt = performance.now();
+    var R = $('s-result'), r = App.result, p = (r && r.pick) || {};
+    if (!R.classList.contains('rev')) { resFx.on = false; reveal(FX[p.giftKey] || 0, p.tier || 0); }
+    resFxEnd(); $('res-seg').classList.add('now');
+  });
 
   // ---------------- form ----------------
   var NAME_ROWS = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
@@ -323,7 +375,8 @@
     $('c-gift').textContent = txt('consentGiftText'); $('c-mkt').textContent = txt('consentMarketingText');
     $('form-err').textContent = ''; $('f-name').classList.remove('bad'); $('f-phone').classList.remove('bad');
     $('form-submit').disabled = false;
-    $('fm-eb').textContent = App.result && App.result.tierByScore ? T('result.tier', { n: App.result.tierByScore }) : ''; // v2.6 eyebrow
+    var pk = App.result && App.result.pick;
+    $('fm-eb').textContent = pk && pk.giftKey ? T('form.eyebrow', { gift: T('cc.giftLbl.' + pk.giftKey) }) : ''; // v2.7: the gift picked on RESULT (short label: the clip sits at x 508)
     renderKb(); renderForm(); show('form');
   }
   function onKey(k) {
@@ -358,48 +411,50 @@
     var r = App.result, today = Logic.localDate(), records = Store.records();
     // v2.4: duplicate check on a normalised number (digits only, +84 → 0) so +84 90… and 090… are the same customer
     var norm = records.map(function (x) { return { testMode: x.testMode, phone: normPhone(x.phone), tier: x.tier, date: x.date }; });
-    var res = Logic.resolveReward(r.tierByScore, { phone: normPhone(f.phone), records: norm, rule: s.duplicateRule, today: today, stock: s.testMode ? { tier1: 1, tier2: 1 } : Store.stock() });
+    var res = Logic.resolveReward(r.tierByScore, { phone: normPhone(f.phone), records: norm, rule: s.duplicateRule, today: today, stock: pickStock(), giftKey: (r.pick || {}).giftKey });
     var rec = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
-      createdAt: isoLocal(new Date()), date: today, game: r.game, score: r.score, maxScore: r.max, scorePct: r.pct,
-      tierByScore: r.tierByScore, tier: res.tier, reason: res.reason,
-      giftName: res.tier ? giftName(res.tier) : '', rewardCode: res.tier ? Store.nextCode(GAME[r.game].prefix) : '',
+      createdAt: isoLocal(new Date()), date: today, game: r.game, score: r.score, maxScore: r.max, scorePct: r.s100, // v2.7: scorePct = score 0–100 (integer)
+      tierByScore: r.tierByScore, tier: res.tier, giftKey: res.giftKey, reason: res.reason, // tier 1 Hair Tie / Mirror · 2 Mini · 3 full-size
+      giftName: res.tier ? giftName(res.giftKey) : '', rewardCode: res.tier ? Store.nextCode(GAME[r.game].prefix) : '',
       name: name, phone: f.phone, consentGift: true, consentMarketing: !!f.cm, consentTextVersion: en() ? 'v1-en' : 'v1',
       redeemed: false, redeemedAt: '', testMode: !!s.testMode, seed: r.seed, appVersion: s.appVersion,
       difficulty: r.difficulty || 'normal', kiosk: s.kioskName || '', // v2.3
       lang: I18N.lang // v2.4
     };
     var saved = true;
-    try { Store.addRecord(rec); if (rec.tier && !rec.testMode) Store.takeStock(rec.tier); }
+    try { Store.addRecord(rec); if (rec.tier && !rec.testMode) Store.takeGift(rec.giftKey); } // stock is taken when the receipt is issued
     catch (e) { saved = false; Store.log('save failed ' + e.message); }
     if (saved && window.Sheet) Sheet.enqueue(rec.id); // v2.3: background Google Sheet sync (test-mode records are skipped there)
     App.record = rec;
-    if (rec.tier === 0 && rec.reason === '') return toThanks(name);
     toReward(rec, saved);
   }
 
   // ---------------- reward ----------------
-  // tier > 0: gift + code + staff hold (downgraded adds a note); tier 0 (duplicate / out of stock): #s-reward.t0 = greyed gift, note, HOÀN TẤT
+  // tier > 0: gift photo + name (+ random-shade note) + code + staff hold (downgraded adds a note);
+  // tier 0 (duplicate / out of stock): #s-reward.t0 = no gift block, the reason, HOÀN TẤT
   function toReward(rec, saved) {
-    var t0 = !rec.tier, dup = rec.reason === 'duplicate';
+    var t0 = !rec.tier, dup = rec.reason === 'duplicate', k = rec.giftKey || '';
     $('s-reward').classList.toggle('t0', t0);
     $('rw-eyebrow').textContent = T(t0 ? 'thanks.title' : 'reward.hi');
     $('rw-name').textContent = rec.name + '!';
-    $('rw-tier').textContent = t0 ? '—' : T('result.tier', { n: rec.tier });
-    // v2.6 receipt rows: game · score / max · gift level · time (from the record's createdAt, local)
+    // v2.6 receipt rows: game · score (0–100) · time (from the record's createdAt, local); v2.7 the gift block replaces the level row
     var G = GAME[rec.game], ts = String(rec.createdAt || '');
     $('rw-r-game').textContent = G ? G.name.toUpperCase() : '';
-    $('rw-r-score').textContent = num(rec.score || 0) + ' / ' + num(rec.maxScore || 0);
+    $('rw-r-score').textContent = (rec.scorePct != null ? Math.round(rec.scorePct) : Logic.score100(rec.score || 0, rec.maxScore || 0)) + ' / 100';
     $('rw-r-time').textContent = ts.length >= 16 ? ts.slice(8, 10) + '/' + ts.slice(5, 7) + '/' + ts.slice(0, 4) + ' · ' + ts.slice(11, 16) : '';
-    $('rw-gift').textContent = t0 ? T(dup ? 'reward.done' : 'result.soldOut') : rec.giftName;
+    $('rw-gimg').src = k ? ASSETS.gift(k) : '';
+    $('rw-gname').textContent = t0 ? '' : rec.giftName || giftName(k);
+    $('rw-gnote').textContent = !t0 && lipGift(k) ? T('gift.shadeRandom') : '';
+    $('rw-gift').textContent = t0 ? T(dup ? 'reward.done' : 'result.soldOut') : '';
     $('rw-code').textContent = rec.rewardCode;
     barcode($('rw-bc'), t0 ? '' : String(rec.rewardCode || ''));
-    $('rw-note').textContent = t0 ? T(dup ? 'form.onePerPhone' : 'reward.tomorrow') : rec.reason === 'downgraded' ? T('reward.downgrade') : '';
+    $('rw-note').textContent = t0 ? T(dup ? 'form.onePerPhone' : 'result.askStaff') : rec.reason === 'downgraded' ? T('reward.downgrade') : '';
     $('rw-msg').textContent = !saved ? T('form.err.save') : t0 ? '' : T('reward.show');
     resetHold();
     show('reward');
-    fitFont($('rw-name'), 128); fitFont($('rw-gift'), 64); fitFont($('rw-code'), 104);
-    if (!t0) Sfx.play('win_t' + rec.tier);
+    fitFont($('rw-name'), 112); fitFont($('rw-gift'), 64); fitFont($('rw-code'), 96); fitFont($('rw-gname'), 50);
+    if (!t0) Sfx.play(rec.tier >= 2 ? 'win_t2' : 'win_t1');
   }
   // v2.6 P2: Code 128-B barcode of the gift code as inline SVG bars (no library). C128[v] = bar/space module widths of value v
   // (103–105 start A/B/C, 106 stop); checksum = (104 + Σ i·v_i) mod 103. tests/app_tests/v26_check.py decodes the bars back.
@@ -520,8 +575,8 @@
     var a = b.getAttribute('data-action');
     switch (a) {
       case 'home': App.home(); break;
-      case 'form': if (App.screen === 'result') toForm(); break;
-      case 'thanks-skip': if (App.screen === 'result') toThanks(''); break;
+      case 'form': if (App.screen === 'result' && performance.now() - resFx.skipAt > 600) toForm(); break; // not the touch that skipped the reveal
+      case 'thanks-skip': if (App.screen === 'result' && performance.now() - resFx.skipAt > 600) toThanks(''); break;
       case 'thanks': if (App.screen === 'reward') toThanks(App.record ? App.record.name : ''); break;
       case 'idle-stay': hideIdle(); break;
       case 'policy': $('policy-text').textContent = txt('policyText'); overlay('o-policy', true); break;
@@ -594,12 +649,21 @@
     pv.addEventListener('error', function () { App.promoReady = false; $('promo-btn').classList.remove('on'); if (App.screen === 'promo') App.home(); }); // metadata ok but data truncated/undecodable
     if (App.settings.promoVideo) pv.src = App.settings.promoVideo;
     setInterval(function () { try { idleTick(); } catch (e) { onError(e); } }, 500);
-    Store.stock(); // roll daily stock
+    Store.giftStock(); // v2.7: creates the event stock on first run (a v2.6 kiosk's daily stock is migrated)
     Store.log('boot v' + App.settings.appVersion);
     I18N.set(App.settings.defaultLang || 'vi');
     show('attract');
     if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) { try { navigator.serviceWorker.register('sw.js').catch(function () { }); } catch (e) { } }
   }
-  App.debug = { C128: C128, toHowto: toReady, toReady: toReady, toIntro: toIntro, startGame: startGame, toForm: toForm, submitForm: submitForm, show: show, endGame: endGame, toThanks: toThanks, toReward: toReward };
+  // v2.7 test hooks (screenshots / staff checks from the console): RESULT for a forced score 0–100 and gift; a receipt record for a gift
+  function showResultFor(game, s100, giftKey) {
+    App.home(); App.game = GAME[game] ? game : 'umpah';
+    var tier = Logic.tierFor100(s100, th()), p = giftKey ? { tier: Logic.GIFT_TIER[giftKey], giftKey: giftKey, reason: Logic.GIFT_TIER[giftKey] < tier ? 'downgraded' : '' } : giftKey === '' ? { tier: 0, giftKey: '', reason: 'outOfStock' } : Logic.pickGift(tier, pickStock(), Math.random);
+    App.result = { game: App.game, score: s100 * 15, max: 1500, pct: s100, s100: s100, tierByScore: tier, pick: p, seed: 1, difficulty: 'normal' };
+    showResult();
+  }
+  function giftRec(rec, k) { rec.giftKey = k; rec.tier = Logic.GIFT_TIER[k]; rec.giftName = giftName(k); return rec; }
+  App.debug = { C128: C128, toHowto: toReady, toReady: toReady, toIntro: toIntro, startGame: startGame, toForm: toForm, submitForm: submitForm, show: show, endGame: endGame, toThanks: toThanks, toReward: toReward,
+    showResultFor: showResultFor, giftRec: giftRec };
   boot();
 })();
