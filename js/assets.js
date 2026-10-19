@@ -1,4 +1,5 @@
 /* hince LED Game — v2 asset lists + boot-time image preload (ES5, works from file://).
+   v2.7: rose paper background + gift photos in assets/v27/.
    v2.6: the 8-bit / 3D sticker / pixel tile files are retired to assets/_retired_v24/ (paper & sticker kit = assets/v26/). */
 (function () {
   'use strict';
@@ -7,13 +8,20 @@
   var RB = ['01_clear', '02_dawn_ray', '03_tender_room', '05_light', 'gleaming', 'lil_mauve', 'shelly_pink'];
   var RB_NAMES = ['CLEAR', 'DAWN RAY', 'TENDER ROOM', 'LIGHT', 'GLEAMING', 'LIL MAUVE', 'SHELLY PINK'];
   // v2.6 paper & sticker kit (assets/v26/, design/v26_kit): textures, stickers, Tap-Tap! 1 pad, Tap-Tap! 2 claw, thanks photos; heads/ = one per RB shade
-  var V26 = ['bg/bg_toffee_paper.jpg', 'paper/paper.jpg', 'paper/receipt.jpg', 'paper/tape.svg', 'paper/clip.svg', 'paper/arrow.svg',
+  var V26 = ['paper/paper.jpg', 'paper/receipt.jpg', 'paper/tape.svg', 'paper/clip.svg', 'paper/arrow.svg',
     'stickers/p_heart.svg', 'stickers/p_lips.svg', 'stickers/p_sparkle.svg', 'stickers/p_bow.svg', 'stickers/p_gift.svg', 'stickers/p_crown.svg', 'stickers/p_star.svg',
     'tap/cap_pad.png', 'claw/claw_carriage.png', 'claw/claw_head_open.png', 'claw/claw_head_closed.png', 'photos/thanks_nb.jpg', 'photos/thanks_rb.jpg'];
+  // v2.7 rose theme + gift photos (assets/v27/): GIFTS key = Logic.GIFT_KEYS (hairTie | mirror | mini | full)
+  var V27 = ['bg/bg_rose_paper.jpg'];
+  var GIFT_IMG = { hairTie: 'hair_tie', mirror: 'mirror', mini: 'nu_blur_mini', full: 'nu_blur_full' };
+  var WEBP = false; // gift photos: .webp (alpha) where the browser encodes/decodes it, else the palette .png
+  try { WEBP = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') === 0; } catch (e) { }
 
   function nb(name) { return 'assets/img/products/nu_blur_tint/' + name + '.png'; }
   function rb(name) { return 'assets/img/products/radiance_balm/' + name + '.png'; }
   function v26(f) { return 'assets/v26/' + f; }
+  function v27(f) { return 'assets/v27/' + f; }
+  function gift(k) { return GIFT_IMG[k] ? v27('gifts/' + GIFT_IMG[k] + (WEBP ? '.webp' : '.png')) : ''; }
   // v2.6: square bullet close-up of Radiance Balm shade RB[i] name (168x168, bullet centred): target swatch + trays
   function head(name) { return v26('heads/head_' + name + '.png'); }
   // official Nu Blur lip swatch photo of shade NB[i] (i 0-based), 1200x960 — colour reference, never filtered
@@ -25,6 +33,8 @@
     for (i = 0; i < RB.length; i++) out.push(rb(RB[i]));
     for (i = 0; i < NB.length; i++) out.push(photo(i));
     for (i = 0; i < V26.length; i++) out.push(v26(V26[i]));
+    for (i = 0; i < V27.length; i++) out.push(v27(V27[i]));
+    for (var k in GIFT_IMG) out.push(gift(k));
     for (i = 0; i < RB.length; i++) out.push(head(RB[i]));
     out.push('assets/img/logo.png');
     return out;
@@ -54,6 +64,6 @@
     if (!left) finish();
   }
 
-  var api = { NB: NB, NB_NAMES: NB_NAMES, RB: RB, RB_NAMES: RB_NAMES, cache: {}, nb: nb, rb: rb, photo: photo, v26: v26, head: head, list: list, preload: preload };
+  var api = { NB: NB, NB_NAMES: NB_NAMES, RB: RB, RB_NAMES: RB_NAMES, cache: {}, nb: nb, rb: rb, photo: photo, v26: v26, v27: v27, gift: gift, head: head, list: list, preload: preload };
   window.ASSETS = api;
 })();

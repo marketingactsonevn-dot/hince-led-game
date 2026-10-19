@@ -185,10 +185,10 @@
 
 
   // ---------------- INTRO (v2.4 A): 3D product reveal, SELECT card → video → READY ----------------
-  // Two <video>s are preloaded at boot. WebM (VP9 alpha) only on Chromium, else the MP4 with the screen background baked in.
+  // Two <video>s are preloaded at boot. WebM (VP9 alpha) only on Chromium, else the MP4 with the screen background baked in (v2.7: re-baked on the rose paper, *_rose.mp4).
   // ended → hold 250 ms → 120 ms white flash → toReady; tap (≥ 400 ms) skips to the flash; no 'playing' within 1200 ms,
   // error or stalled → end PNG pops in, 1200 ms, READY; hard cap 4.5 s. Timers go through later() (App.home cancels them).
-  var INTRO = { nb: { file: 'reveal_nublur', bake: '_toffee', chip: 'NU BLUR TINT', beat: 1550 }, rb: { file: 'reveal_balm', bake: '_toffee', chip: 'RADIANCE BALM', beat: 750 } };
+  var INTRO = { nb: { file: 'reveal_nublur', bake: '_rose', chip: 'NU BLUR TINT', beat: 1550 }, rb: { file: 'reveal_balm', bake: '_rose', chip: 'RADIANCE BALM', beat: 750 } };
   var intro = { game: '', k: '', v: null, done: true, started: false, fb: false };
   function introSrc(k) {
     var I = INTRO[k], v = $('intro-' + k), webm = false;

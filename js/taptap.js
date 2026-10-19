@@ -1,4 +1,4 @@
-/* Tap-Tap! — v2.6 paper (07_taptap1): canvas rhythm game, 4 lanes on the toffee paper. Constants, timing and hit logic unchanged since v2;
+/* Tap-Tap! — v2.6 paper (07_taptap1): canvas rhythm game, 4 lanes on the rose paper (v2.7). Constants, timing and hit logic unchanged since v2;
    only the drawing changed. Every sprite (background + lanes, pads, balms with their shadow, gold balm, press glow / ring, stamp words)
    is pre-rendered once; a frame only blits them. Pad, press ring and glow are all centred on the same (cx(l), HIT). */
 (function () {
@@ -7,7 +7,7 @@
   // canvas px: lane l = x LX + l*LP … +LW from TOP down; hit line HIT (judging is by time; y only places the drawing)
   var W = 1080, H = 1920, LX = 60, LP = 245, LW = 225, TOP = 370, HIT = 1640;
   var LANE_BOTTOM = 1790, BALM_H = 280, PAD = [122, 116], RING = 85, GLOW = 160; // geometry.json taptap1: pad file 244x232, cap centre (122,116)
-  var SH = { blur: 14, y: 20, col: 'rgba(40,22,12,.32)' }, M = 40; // balm shadow 0 20 14 (pre-rendered), sprite margin
+  var SH = { blur: 14, y: 20, col: 'rgba(46,24,30,.32)' }, M = 40; // balm shadow 0 20 14 (pre-rendered), sprite margin
   var canvas, ctx, SRC, bg = null, padImg = null, tiles = [], goldImg = null, glowImg = null, ringImg = null, spark = null, built = -1, fontOk = false, shade = [];
   var TXT = {}; // pre-rendered stamp words
   var S = null, raf = 0, t0 = 0, running = false, onEnd = null, latency = 0;
@@ -24,7 +24,7 @@
     canvas = document.getElementById('tt-canvas'); ctx = canvas.getContext('2d');
     comboEl = document.getElementById('tt-combo'); timeEl = document.getElementById('tt-time');
     scoreEl = document.getElementById('tt-score'); segEls = document.getElementById('tt-seg').children;
-    SRC = ASSETS.RB.map(ASSETS.rb).concat(ASSETS.v26('bg/bg_toffee_paper.jpg'), ASSETS.v26('tap/cap_pad.png'), ASSETS.v26('stickers/p_sparkle.svg'), ASSETS.v26('stickers/p_star.svg'));
+    SRC = ASSETS.RB.map(ASSETS.rb).concat(ASSETS.v27('bg/bg_rose_paper.jpg'), ASSETS.v26('tap/cap_pad.png'), ASSETS.v26('stickers/p_sparkle.svg'), ASSETS.v26('stickers/p_star.svg'));
     canvas.addEventListener('pointerdown', onDown);
   }
 
@@ -47,17 +47,17 @@
     var sp = img(ASSETS.v26('stickers/p_sparkle.svg')); spark = sp ? sticker(sp, 76) : null;
     TXT = { perfect: makeStamp('Perfect!', 70), good: makeStamp('Good', 64), gold: makeStamp('Tap-Tap!', 64), miss: makeStamp('Miss', 58), tap: makeStamp('TAP!', 58) };
   }
-  // background: toffee paper + 4 rounded lanes (r 30, cream .13 fill, 2 px inner cream .45 line) + dashed cream hit line at HIT − 96
+  // background: rose paper (v2.7) + 4 rounded lanes (r 30, cream .13 fill, 2 px inner cream .45 line) + dashed cream hit line at HIT − 96
   function buildBg() {
-    var c = canvasOf(W, H), b = c.getContext('2d'), paper = img(ASSETS.v26('bg/bg_toffee_paper.jpg'));
-    b.fillStyle = '#B6845D'; b.fillRect(0, 0, W, H);
+    var c = canvasOf(W, H), b = c.getContext('2d'), paper = img(ASSETS.v27('bg/bg_rose_paper.jpg'));
+    b.fillStyle = '#C99196'; b.fillRect(0, 0, W, H);
     if (paper) b.drawImage(paper, 0, 0, W, H);
     for (var l = 0; l < 4; l++) {
       var x = LX + l * LP;
-      b.fillStyle = 'rgba(251,244,236,.13)'; rr(b, x, TOP, LW, LANE_BOTTOM - TOP, 30); b.fill();
-      b.strokeStyle = 'rgba(251,244,236,.45)'; b.lineWidth = 2; rr(b, x + 1, TOP + 1, LW - 2, LANE_BOTTOM - TOP - 2, 29); b.stroke();
+      b.fillStyle = 'rgba(251,243,240,.13)'; rr(b, x, TOP, LW, LANE_BOTTOM - TOP, 30); b.fill();
+      b.strokeStyle = 'rgba(251,243,240,.45)'; b.lineWidth = 2; rr(b, x + 1, TOP + 1, LW - 2, LANE_BOTTOM - TOP - 2, 29); b.stroke();
     }
-    b.strokeStyle = 'rgba(251,244,236,.7)'; b.lineWidth = 4; b.setLineDash([12, 10]);
+    b.strokeStyle = 'rgba(251,243,240,.7)'; b.lineWidth = 4; b.setLineDash([12, 10]);
     b.beginPath(); b.moveTo(70, HIT - 96); b.lineTo(W - 70, HIT - 96); b.stroke(); b.setLineDash([]);
     return c;
   }
@@ -76,16 +76,16 @@
     var b = makeBalm(im); if (!b) return null;
     var c = canvasOf(b.width + 80, b.height + 80), x = c.getContext('2d'), ox = 40, oy = 40, hx = ox + b.cx, hy = oy + b.cy;
     var g = x.createRadialGradient(hx, hy, 0, hx, hy, 130);
-    g.addColorStop(0, 'rgba(255,236,196,.95)'); g.addColorStop(.38, 'rgba(248,216,185,.6)'); g.addColorStop(.7, 'rgba(248,216,185,0)'); g.addColorStop(1, 'rgba(248,216,185,0)');
+    g.addColorStop(0, 'rgba(255,236,196,.95)'); g.addColorStop(.38, 'rgba(246,221,204,.6)'); g.addColorStop(.7, 'rgba(246,221,204,0)'); g.addColorStop(1, 'rgba(246,221,204,0)');
     x.fillStyle = g; x.fillRect(hx - 130, hy - 130, 260, 260);
     x.drawImage(b, ox, oy);
     var bx = hx + 38, by = hy - BALM_H / 2 + 8; // badge centre: image top-right
     x.save(); x.translate(bx, by); x.rotate(-8 * Math.PI / 180);
-    x.shadowColor = 'rgba(40,22,12,.45)'; x.shadowBlur = 16; x.shadowOffsetY = 10;
+    x.shadowColor = 'rgba(46,24,30,.45)'; x.shadowBlur = 16; x.shadowOffsetY = 10;
     x.fillStyle = '#fff'; x.beginPath(); x.arc(0, 0, 40, 0, Math.PI * 2); x.fill(); x.shadowColor = 'transparent';
     var bg2 = x.createRadialGradient(-12, -10, 2, 0, 0, 35); bg2.addColorStop(0, '#FCE7C8'); bg2.addColorStop(.7, '#EBC08E'); bg2.addColorStop(1, '#D9A877');
     x.fillStyle = bg2; x.beginPath(); x.arc(0, 0, 35, 0, Math.PI * 2); x.fill();
-    x.fillStyle = '#4C362B'; x.font = '700 27px "Be Vietnam Pro", sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('×2', 0, 1);
+    x.fillStyle = '#4A2F33'; x.font = '700 27px "Be Vietnam Pro", sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('×2', 0, 1);
     x.restore();
     c.cx = hx; c.cy = hy;
     return c;
@@ -93,26 +93,26 @@
   // press glow (320, centre (GLOW, GLOW)) and azalea ring (170, 6 px, soft cream outer glow); both centred on (cx, HIT) when drawn
   function makeGlow() {
     var c = canvasOf(2 * GLOW, 2 * GLOW), x = c.getContext('2d'), g = x.createRadialGradient(GLOW, GLOW, 0, GLOW, GLOW, GLOW);
-    g.addColorStop(0, 'rgba(255,250,244,.9)'); g.addColorStop(.34, 'rgba(223,166,187,.75)'); g.addColorStop(.7, 'rgba(223,166,187,0)'); g.addColorStop(1, 'rgba(223,166,187,0)');
+    g.addColorStop(0, 'rgba(255,250,244,.9)'); g.addColorStop(.34, 'rgba(196,120,138,.75)'); g.addColorStop(.7, 'rgba(196,120,138,0)'); g.addColorStop(1, 'rgba(196,120,138,0)');
     x.fillStyle = g; x.fillRect(0, 0, 2 * GLOW, 2 * GLOW);
     return c;
   }
   function makeRing() {
     var R = RING + 40, c = canvasOf(2 * R, 2 * R), x = c.getContext('2d');
     x.shadowColor = 'rgba(255,250,244,.8)'; x.shadowBlur = 26;
-    x.strokeStyle = '#DFA6BB'; x.lineWidth = 6; x.beginPath(); x.arc(R, R, RING + 3, 0, Math.PI * 2); x.stroke(); // box-shadow 0 0 0 6px: 6 px band outside the 170 circle
+    x.strokeStyle = '#EDD7D4'; x.lineWidth = 6; x.beginPath(); x.arc(R, R, RING + 3, 0, Math.PI * 2); x.stroke(); // box-shadow 0 0 0 6px: 6 px band outside the 170 circle
     return c;
   }
   function sticker(im, w) { var h = w * im.naturalHeight / im.naturalWidth, c = canvasOf(w, h); c.getContext('2d').drawImage(im, 0, 0, w, h); return c; }
-  // stamp word: italic serif #9C6A44 on cream .88, 5 px border, radius 14, rotated −8°
+  // stamp word: italic serif #6E4E69 on cream .88, 5 px border, radius 14, rotated −8°
   function makeStamp(s, px) {
     var m = canvasOf(10, 10).getContext('2d'); m.font = 'italic 600 ' + px + 'px "Noto Serif Display Variable", serif';
     var tw = Math.ceil(m.measureText(s).width), bw = tw + 44, bh = Math.ceil(px * 1.18) + 16, d = Math.ceil(Math.hypot(bw, bh)) + 8;
     var c = canvasOf(d, d), x = c.getContext('2d');
     x.translate(d / 2, d / 2); x.rotate(-8 * Math.PI / 180);
-    x.fillStyle = 'rgba(251,244,236,.88)'; rr(x, -bw / 2, -bh / 2, bw, bh, 14); x.fill();
-    x.strokeStyle = '#9C6A44'; x.lineWidth = 5; rr(x, -bw / 2 + 2.5, -bh / 2 + 2.5, bw - 5, bh - 5, 12); x.stroke();
-    x.fillStyle = '#9C6A44'; x.font = 'italic 600 ' + px + 'px "Noto Serif Display Variable", serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.fillStyle = 'rgba(251,243,240,.88)'; rr(x, -bw / 2, -bh / 2, bw, bh, 14); x.fill();
+    x.strokeStyle = '#6E4E69'; x.lineWidth = 5; rr(x, -bw / 2 + 2.5, -bh / 2 + 2.5, bw - 5, bh - 5, 12); x.stroke();
+    x.fillStyle = '#6E4E69'; x.font = 'italic 600 ' + px + 'px "Noto Serif Display Variable", serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
     x.fillText(s, 0, -px * 0.04);
     return c;
   }
@@ -231,7 +231,7 @@
       var fx0 = cx(f.lane), k1 = age / 600, e = 1 - (1 - k1) * (1 - k1); // e: ease-out
       ctx.globalAlpha = 1 - k1;
       if (f.burst && spark) put(spark, fx0 + 70 + 20 * e, HIT - 110 - 20 * e, 0.6 + 0.4 * e);
-      if (f.empty) { ctx.strokeStyle = 'rgba(251,244,236,.8)'; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(fx0, HIT, 40 + 30 * k1, 0, Math.PI * 2); ctx.stroke(); }
+      if (f.empty) { ctx.strokeStyle = 'rgba(251,243,240,.8)'; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(fx0, HIT, 40 + 30 * k1, 0, Math.PI * 2); ctx.stroke(); }
       if (f.text && TXT[f.text]) put(TXT[f.text], fx0, HIT - BALM_H / 2 - 90 - 60 * e, 1);
       ctx.globalAlpha = 1;
     }
