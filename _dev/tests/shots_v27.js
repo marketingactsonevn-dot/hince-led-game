@@ -1,4 +1,4 @@
-// v2.7 screenshots (1080x1920) with Playwright Chromium. Not part of the app.
+// v2.7 screenshots (1080x1920 JPEG q88) with Playwright Chromium. Not part of the app.
 // Run from the repo root:  NODE_PATH=$(npm root -g) node _dev/tests/shots_v27.js [rootDir] [outDir] [prefix]
 //   rootDir = folder served (default: repo root), outDir = where PNGs go (default _dev/report_v2_7/shots), prefix = file name prefix
 // Drives the app through App.debug (no real touches needed); "before" shots use the same script on an old checkout.
@@ -40,7 +40,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     if (lang) await p.evaluate(l => I18N.set(l), lang);
     return p;
   }
-  async function shot(p, name) { if (ONLY.length && !ONLY.some(o => name.indexOf(o) >= 0)) return; await p.screenshot({ path: path.join(OUT, PRE + name + '.png') }); console.log('  shot ' + PRE + name); }
+  async function shot(p, name) { if (ONLY.length && !ONLY.some(o => name.indexOf(o) >= 0)) return; await p.screenshot({ path: path.join(OUT, PRE + name + '.jpg'), type: 'jpeg', quality: 88 }); console.log('  shot ' + PRE + name); }
   const v27 = async p => p.evaluate(() => !!(App.debug && App.debug.showResultFor));
 
   // 1 attract (flyer: there is no attract video in the repo)
@@ -64,7 +64,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       await p.evaluate(([k, sc]) => App.debug.showResultFor('umpah', sc, k), [k, sc]);
       await sleep(3600); await shot(p, '04_result_' + k);
     }
-    await p.evaluate(() => App.debug.showResultFor('taptap', 88, 'mini')); await sleep(600); await shot(p, '04_result_anim_mid');
+    // mid-animation frames (confetti in the air): Mini (medium) and full-size (strongest: more confetti + sparkle stickers)
+    await p.evaluate(() => App.debug.showResultFor('taptap', 88, 'mini')); await sleep(2250); await shot(p, '04_result_anim_mini');
+    await p.evaluate(() => App.debug.showResultFor('taptap2', 97, 'full')); await sleep(2250); await shot(p, '04_result_anim_full');
+    await p.evaluate(() => App.debug.showResultFor('umpah', 45, 'hairTie')); await sleep(2250); await shot(p, '04_result_anim_hairTie');
     await p.evaluate(() => App.debug.showResultFor('umpah2', 40, '')); await sleep(3000); await shot(p, '04_result_soldout');
   } else {
     for (const [k, sc] of [['t2', 1300], ['t1', 900], ['t0', 300]]) {
