@@ -166,3 +166,22 @@ NODE_PATH=$(npm root -g) node _dev/tests/shots_v27.js && python3 _dev/tests/cont
 - Code: `index.html`, `css/style.css`, `js/app.js`, `js/logic.js`, `js/config.js`, `js/store.js`, `js/admin.js`, `js/i18n.js`, `js/assets.js`, `js/umpah1.js`, `js/umpah2.js`, `js/taptap.js`, `js/taptap2.js`, `sw.js`, `manifest.webmanifest` (màu theme).
 - Ảnh/video mới: `assets/v27/bg/bg_rose_paper.jpg`, `assets/v27/gifts/*` (8 file), `assets/video/reveal/reveal_*_rose.mp4`. Xoá: `reveal_*_toffee.mp4`.
 - Công cụ dev: `_dev/tests/make_rose_bg.py`, `make_gifts.py`, `shots_v27.js`, `flow_v27.js`, `contact_v27.py`; test `logic.test.js` cập nhật.
+
+---
+
+## 8. Bổ sung v2.7.1 (20/10/2026) — Control Center gọn lại, mặc định tiếng Anh, icon cài đặt
+
+| Việc | Kết quả |
+|---|---|
+| Control Center rối, chữ to và thô | ✅ Chia thành **5 tab**: Tổng quan · Quà · Game · Dữ liệu · Hệ thống (mỗi tab 1 màn, gần như không phải cuộn). Chữ dòng 24 px nét thường (trước 30 px đậm), chú thích 17 px, tiêu đề mục mono 16 px. Thẻ trắng viền mảnh, nút ±, nút chọn và ô nhập nhỏ gọn hơn; BẬT/TẮT thành **công tắc gạt**. Có nút **VI \| EN** ngay trên đầu Control Center. |
+| Ngôn ngữ mặc định | ✅ Màn chờ mở bằng **tiếng Anh**; khách vẫn bấm VI \| EN cho lượt của mình, về màn chờ lại trở về EN. Máy đã chạy bản cũ (đang lưu VI) tự chuyển sang EN **1 lần**; nếu sau đó nhân viên chọn lại VI trong Control Center (tab Hệ thống) thì giữ VI. |
+| Icon nút Control Center giống nút sáng/tối | ✅ Đổi thành **bánh răng cài đặt** (8 răng, lỗ giữa). |
+| Phiên bản | `2.7.1` · bộ nhớ offline `hince-led-v2.7.1` (máy LED tự lấy bản mới). |
+
+Ảnh: [`control_center.jpg`](control_center.jpg) (trước / sau) và `shots/08_cc_overview.jpg`, `08_cc_gifts.jpg`, `08_cc_games.jpg`, `08_cc_data.jpg`, `08_cc_system.jpg`; icon bánh răng ở `shots/01_attract.jpg` (góc trên trái).
+
+Kiểm tra: test logic 27 + 39 pass; `flow_v27.js` 18/18 (thêm kiểm tra: mở bằng EN, PIN 2026 → 5 tab, chọn VI làm mặc định được giữ, máy cũ lưu VI tự chuyển EN).
+
+Giả định:
+- Control Center hiển thị theo ngôn ngữ đang chọn ở màn chờ (giờ mặc định EN). Nhân viên bấm **VI** ở góc trên Control Center để đọc tiếng Việt; đóng Control Center là màn chờ về lại ngôn ngữ mặc định.
+- Không đổi bất kỳ chức năng nào của Control Center, chỉ sắp xếp lại vào tab: kho quà, ngưỡng, quy tắc, tên quà ở tab **Quà**; game/độ khó/âm thanh ở **Game**; Google Sheet + xuất CSV ở **Dữ liệu**; ngôn ngữ mặc định, test mode, PIN, xoá dữ liệu, phiên bản ở **Hệ thống**.

@@ -47,9 +47,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   console.log('FLOW (http, Chromium 1080x1920)');
   const { p, errs } = await open(base + 'index.html');
-  await t('first run: event stock 500 / 200 / 100 / 50, settings 70 / 90, version 2.7.0', async () => {
-    const o = await p.evaluate(() => ({ st: Store.giftStock(), th: App.settings.thresholds, v: App.settings.appVersion }));
-    assert.deepStrictEqual(o.st, { hairTie: 500, mirror: 200, mini: 100, full: 50 }); assert.deepStrictEqual(o.th, { mid: 70, high: 90 }); assert.strictEqual(o.v, '2.7.0');
+  await t('first run: event stock 500 / 200 / 100 / 50, settings 70 / 90, version 2.7.1, idle screen in English', async () => {
+    const o = await p.evaluate(() => ({ st: Store.giftStock(), th: App.settings.thresholds, v: App.settings.appVersion, lang: I18N.lang, def: App.settings.defaultLang }));
+    assert.strictEqual(o.lang, 'en'); assert.strictEqual(o.def, 'en');
+    assert.deepStrictEqual(o.st, { hairTie: 500, mirror: 200, mini: 100, full: 50 }); assert.deepStrictEqual(o.th, { mid: 70, high: 90 }); assert.strictEqual(o.v, '2.7.1');
   });
   let full;
   await t('score 96/100 → full-size: result shows 96 + gift, receipt keeps the same gift, stock −1', async () => {
@@ -57,7 +58,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     assert.strictEqual(full.res.score, '96'); assert.strictEqual(full.res.r.pick.giftKey, 'full'); assert(/rev/.test(full.res.rev));
     assert.strictEqual(full.rec.giftKey, 'full'); assert.strictEqual(full.rec.tier, 3); assert.strictEqual(full.rec.scorePct, 96); assert.strictEqual(full.rec.score, 1440);
     assert.strictEqual(full.rec.maxScore, 1500); assert.strictEqual(full.rec.giftName, 'hince Nu Blur Tint'); assert.strictEqual(full.rec.receiptGift, 'hince Nu Blur Tint');
-    assert.strictEqual(full.rec.receiptScore, '96 / 100'); assert.strictEqual(full.rec.appVersion, '2.7.0');
+    assert.strictEqual(full.rec.receiptScore, '96 / 100'); assert.strictEqual(full.rec.appVersion, '2.7.1');
     assert.strictEqual((await p.evaluate(() => Store.giftStock())).full, 49);
   });
   await t('score 78 → Mini; 40 → Hair Tie or Mirror; stock follows', async () => {
@@ -135,6 +136,17 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     }
     await p.evaluate(() => { App.home(); I18N.set('vi'); });
   });
+  await t('Control Center (v2.7.1): PIN 2026, 5 tabs, a staff choice of VI as default language is kept', async () => {
+    await p.evaluate(() => { App.home(); Admin.open(); });
+    for (const k of '2026') await p.click('[data-pin="' + k + '"]');
+    const tabs = await p.$$eval('#cc-tabs button', b => b.map(x => x.getAttribute('data-tab')));
+    assert.deepStrictEqual(tabs, ['overview', 'gifts', 'games', 'data', 'system']);
+    for (const t of tabs) { await p.click('#cc-tabs [data-tab="' + t + '"]'); assert(await p.$eval('#admin-panel', e => e.children.length > 0)); }
+    await p.click('[data-deflang="vi"]');
+    assert.strictEqual(await p.evaluate(() => Store.settings().defaultLang), 'vi');
+    await p.click('[data-deflang="en"]');
+    await p.click('#cc-close'); assert.strictEqual(await p.evaluate(() => I18N.lang), 'en');
+  });
   await t('no page errors (http)', async () => assert.deepStrictEqual(errs, []));
 
   console.log('MIGRATION (a v2.6 kiosk)');
@@ -142,7 +154,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     if (localStorage.getItem('mig_done')) return; localStorage.setItem('mig_done', '1');
     localStorage.setItem('hince_led_stock_v1', JSON.stringify({ date: '2026-11-27', tier1: 37, tier2: 4 }));
     localStorage.setItem('hince_led_settings_v1', JSON.stringify({ appVersion: '2.4.0', thresholds: { umpah: { tier1: 45, tier2: 70 }, taptap: { tier1: 40, tier2: 75 }, umpah2: { tier1: 45, tier2: 70 }, taptap2: { tier1: 45, tier2: 70 } },
-      dailyStock: { tier1: 100, tier2: 20 }, gifts: { tier1: 'Quà Mức 1', tier2: 'Quà Mức 2' }, giftsEn: { tier1: 'L1', tier2: 'L2' }, sound: false, kioskName: 'LED-2', adminPin: '1234' }));
+      dailyStock: { tier1: 100, tier2: 20 }, defaultLang: 'vi', gifts: { tier1: 'Quà Mức 1', tier2: 'Quà Mức 2' }, giftsEn: { tier1: 'L1', tier2: 'L2' }, sound: false, kioskName: 'LED-2', adminPin: '1234' }));
     localStorage.setItem('hince_led_records_v1', JSON.stringify([{ id: 'old1', phone: '0907777777', tier: 1, date: '2026-11-27', testMode: false, giftName: 'Quà Mức 1', scorePct: 52.3 }]));
   };
   const m = await open(base + 'index.html', v26);
@@ -154,7 +166,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     const s = await m.p.evaluate(() => App.settings);
     assert.deepStrictEqual(s.thresholds, { mid: 70, high: 90 }); assert.strictEqual(s.dailyStock, undefined);
     assert.strictEqual(s.gifts.hairTie, 'hince Hair Tie'); assert.strictEqual(s.gifts.tier1, undefined);
-    assert.strictEqual(s.sound, false); assert.strictEqual(s.kioskName, 'LED-2'); assert.strictEqual(s.adminPin, '1234'); assert.strictEqual(s.appVersion, '2.7.0');
+    assert.strictEqual(s.sound, false); assert.strictEqual(s.kioskName, 'LED-2'); assert.strictEqual(s.adminPin, '1234'); assert.strictEqual(s.appVersion, '2.7.1'); assert.strictEqual(s.defaultLang, 'en'); // v2.6 saved 'vi' without anyone choosing it
   });
   await t('a phone that got a v2.6 gift is still a duplicate in v2.7', async () => {
     const d = await play(m.p, 'umpah', 1500, 1500, '0907777777');
@@ -169,7 +181,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     assert.strictEqual(r.rec.scorePct, 50); assert.strictEqual(r.rec.tier, 1);
     assert.deepStrictEqual(f.errs, []);
   });
-  await t('service worker caches v2.7 (hince-led-v2.7) and the app opens offline', async () => {
+  await t('service worker caches v2.7.1 (hince-led-v2.7.1) and the app opens offline', async () => {
     const ctx = await browser.newContext({ viewport: { width: 1080, height: 1920 } });
     const q = await ctx.newPage();
     await q.goto(base + 'index.html');
@@ -177,10 +189,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     await q.evaluate(() => navigator.serviceWorker.ready);
     await sleep(1500);
     const keys = await q.evaluate(async () => { const k = await caches.keys(); const c = await caches.open(k[0]); return { k, n: (await c.keys()).length, gift: !!(await c.match('./assets/v27/gifts/nu_blur_full.webp')), bg: !!(await c.match('./assets/v27/bg/bg_rose_paper.jpg')) }; });
-    assert.deepStrictEqual(keys.k, ['hince-led-v2.7']); assert(keys.gift && keys.bg, JSON.stringify(keys));
+    assert.deepStrictEqual(keys.k, ['hince-led-v2.7.1']); assert(keys.gift && keys.bg, JSON.stringify(keys));
     online = false;
     await q.reload(); await q.waitForFunction(() => window.App && App.assetsReady, null, { timeout: 15000 });
-    assert.strictEqual(await q.evaluate(() => App.settings.appVersion), '2.7.0');
+    assert.strictEqual(await q.evaluate(() => App.settings.appVersion), '2.7.1');
     assert(await q.evaluate(() => getComputedStyle(document.getElementById('stage')).backgroundImage.includes('bg_rose_paper')));
     online = true; await ctx.close();
   });

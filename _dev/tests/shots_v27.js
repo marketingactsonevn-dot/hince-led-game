@@ -37,15 +37,20 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     await p.goto(base);
     await p.waitForFunction(() => window.App && App.assetsReady, null, { timeout: 15000 });
     await p.evaluate(() => document.fonts.ready);
-    if (lang) await p.evaluate(l => I18N.set(l), lang);
+    if (lang) await setLang(p, lang);
     return p;
+  }
+  // the default language (App.home() goes back to it before every screen) = lang, saved like a Control Center choice
+  async function setLang(p, lang) {
+    await p.evaluate(l => { const s = Store.settings(); s.defaultLang = l; Store.saveSettings(s); App.applySettings(); I18N.set(l); }, lang);
   }
   async function shot(p, name) { if (ONLY.length && !ONLY.some(o => name.indexOf(o) >= 0)) return; await p.screenshot({ path: path.join(OUT, PRE + name + '.jpg'), type: 'jpeg', quality: 88 }); console.log('  shot ' + PRE + name); }
   const v27 = async p => p.evaluate(() => !!(App.debug && App.debug.showResultFor));
 
   // 1 attract (flyer: there is no attract video in the repo)
   let p = await page();
-  await sleep(600); await shot(p, '01_attract');
+  await sleep(600); await shot(p, '01_attract'); // the default language (EN since v2.7.1)
+  await setLang(p, 'vi');
   // 2 ready / how to play, one per game type (the countdown would start the game: shoot early)
   for (const g of ['umpah', 'taptap']) {
     await p.evaluate(g => App.debug.toReady(g), g); await sleep(900); await shot(p, '02_ready_' + g);
@@ -90,7 +95,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await sleep(500); await shot(p, '05_form_phone_en');
   await p.close();
   // 6 reward receipt: the four gifts (v2.7) / two levels (v2.6), then the duplicate / out of stock receipt
-  p = await page();
+  p = await page('vi');
   const now = new Date().toISOString().slice(0, 19) + '+07:00';
   const recs = isNew ? [['hairTie', 1, 55], ['mirror', 1, 64], ['mini', 2, 81], ['full', 3, 97]] : [['t1', 1, 900], ['t2', 2, 1300]];
   for (const [k, tier, sc] of recs) {
@@ -110,9 +115,15 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   // 8 Control Center: PIN, then the gifts section
   await p.evaluate(() => Admin.open());
   for (const k of '2026') await p.click('[data-pin="' + k + '"]');
-  await sleep(400); await shot(p, '08_cc_top');
-  await p.evaluate(() => { const h = [...document.querySelectorAll('#admin-panel h3')].find(x => /QUÀ|GIFT/.test(x.textContent)); if (h) document.getElementById('admin-panel').scrollTop = h.offsetTop - 20; });
-  await sleep(400); await shot(p, '08_cc_gifts');
+  await sleep(400);
+  if (await p.$('#cc-tabs button')) { // v2.7.1 tabs
+    for (const t of ['overview', 'gifts', 'games', 'data', 'system']) { await p.click('#cc-tabs [data-tab="' + t + '"]'); await sleep(300); await shot(p, '08_cc_' + t); }
+    await p.click('#cc-lang [data-lang="vi"]'); await sleep(300); await p.click('#cc-tabs [data-tab="gifts"]'); await sleep(300); await shot(p, '08_cc_gifts_vi');
+  } else {
+    await shot(p, '08_cc_top');
+    await p.evaluate(() => { const h = [...document.querySelectorAll('#admin-panel h3')].find(x => /QUÀ|GIFT/.test(x.textContent)); if (h) document.getElementById('admin-panel').scrollTop = h.offsetTop - 20; });
+    await sleep(400); await shot(p, '08_cc_gifts');
+  }
   await p.close();
   await browser.close(); srv.close();
   if (errors.length) { console.log('PAGE ERRORS:\n' + errors.join('\n')); process.exitCode = 1; } else console.log('no page errors');
