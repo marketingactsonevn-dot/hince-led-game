@@ -51,7 +51,10 @@
     if (th && (typeof th.mid !== 'number' || typeof th.high !== 'number')) { delete saved.thresholds; ch = true; }
     if (saved.dailyStock) { delete saved.dailyStock; ch = true; }
     if (saved.gifts && ('tier1' in saved.gifts || 'tier2' in saved.gifts)) { delete saved.gifts; delete saved.giftsEn; ch = true; }
-    if (ch) { write(K.settings, saved); log('settings migrated to v2.7 (thresholds 70/90, gift names)'); }
+    // v2.7.1: the default language becomes EN. Control Center saves the whole settings object, so a kiosk that ever saved
+    // anything carries defaultLang 'vi' without anyone choosing it: drop it once (a VI chosen after this is kept).
+    if (!saved.lang271) { delete saved.defaultLang; saved.lang271 = true; ch = true; }
+    if (ch) { write(K.settings, saved); log('settings migrated to v2.7.1 (thresholds 70/90, gift names, default language EN)'); }
     return saved;
   }
   var GK = ['hairTie', 'mirror', 'mini', 'full'];

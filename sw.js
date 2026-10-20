@@ -1,5 +1,5 @@
 /* Offline cache for hosted mode (https). Bump VERSION when files change. */
-var VERSION = 'hince-led-v2.7';
+var VERSION = 'hince-led-v2.7.1';
 var FILES = ['./',
   './index.html',
   './manifest.webmanifest',

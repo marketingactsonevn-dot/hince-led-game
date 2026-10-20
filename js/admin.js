@@ -33,7 +33,7 @@
   function stamp() { var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; }; return Logic.localDate(d).replace(/-/g, '') + '_' + p(d.getHours()) + p(d.getMinutes()); }
 
   // the screen underneath stops (.active first: App.home skips its auto-reload while the CC is open); re-entry (keyboard) is ignored
-  function open() { if (ov.classList.contains('active')) return; mode = 'pin'; pin = ''; msg = ''; arm = ''; ov.classList.add('active'); if (App.screen !== 'attract') App.home(); renderPin(); armClose(); }
+  function open() { if (ov.classList.contains('active')) return; mode = 'pin'; pin = ''; msg = ''; arm = ''; tab = 'overview'; ov.classList.add('active'); if (App.screen !== 'attract') App.home(); renderPin(); armClose(); }
   function close() { var f = document.activeElement; if (f && ov.contains(f)) f.blur(); ov.classList.remove('active'); clearTimeout(closeTimer); clearTimeout(armTimer); arm = ''; mode = 'pin'; App.home(); }
   function armClose() { clearTimeout(closeTimer); if (ov.classList.contains('active')) closeTimer = setTimeout(close, CLOSE_MS); }
 
@@ -69,7 +69,7 @@
   function sec(title, body) { return '<section class="cc-sec"><h3>' + title + '</h3>' + body + '</section>'; }
   function box(rows) { return '<div class="cc-box">' + rows + '</div>'; }
   function row(label, right, cls) { return '<div class="cc-row' + (cls ? ' ' + cls : '') + '"><div class="lbl">' + label + '</div><div class="cc-r">' + (right || '') + '</div></div>'; }
-  function tg(on, attr) { return '<button class="cc-tg' + (on ? '' : ' off') + '" ' + attr + '>' + T(on ? 'cc.on' : 'cc.off') + '</button>'; }
+  function tg(on, attr) { return '<button class="cc-tg' + (on ? ' on' : ' off') + '" ' + attr + ' aria-label="' + T(on ? 'cc.on' : 'cc.off') + '"><i></i></button>'; } // v2.7.1: switch
   function btn(a, label, cls) { return '<button class="btn vn cc-mb' + (cls ? ' ' + cls : '') + '" data-a="' + a + '">' + label + '</button>'; }
   function stp(key, value, deltas) {
     var one = deltas.length === 2, b = function (d) { return '<button class="cc-st" data-step="' + key + '" data-d="' + d + '">' + (one ? (d < 0 ? '-' : '+') : (d < 0 ? d : '+' + d)) + '</button>'; };
@@ -80,6 +80,12 @@
   function gpic(k) { return '<img class="cc-gimg" src="' + ASSETS.gift(k) + '" alt="">'; }
   function gname(k) { var s = S(); return (s.gifts && s.gifts[k]) || window.DEFAULTS.gifts[k]; }
 
+  // v2.7.1: the panel is split into tabs (one screen each, no long scroll). tab survives re-renders while the CC is open.
+  var TABS = ['overview', 'gifts', 'games', 'data', 'system'], tab = 'overview';
+  function tabs() {
+    $('cc-tabs').innerHTML = TABS.map(function (t) { return '<button data-tab="' + t + '"' + (t === tab ? ' class="on"' : '') + '>' + T('cc.tab.' + t) + '</button>'; }).join('');
+    [].forEach.call($('cc-lang').children, function (b) { b.classList.toggle('on', b.getAttribute('data-lang') === I18N.lang); });
+  }
   function render() {
     if (mode !== 'panel') { renderPin(); return; }
     ov.classList.remove('pin');
@@ -90,95 +96,99 @@
     var cnt = function (arr, f) { return arr.filter(f).length; };
     var pending = todayR.filter(function (r) { return r.tier > 0 && !r.redeemed; });
     var diff = s.difficulty || {}, h = '';
+    var given = function (arr, k) { return cnt(arr, function (r) { return r.tier > 0 && r.giftKey === k; }); }; // stock is taken when the receipt prints
+    var D = window.DEFAULTS.giftStock;
+    tabs();
 
-    // 1 HÔM NAY
-    // v2.7: plays + gifts given today per gift (records with giftKey; stock is taken when the receipt prints)
-    var given = function (arr, k) { return cnt(arr, function (r) { return r.tier > 0 && r.giftKey === k; }); };
-    h += sec(T('cc.today') + ' · ' + today, '<div class="cc-stat five">' +
-      '<div><b>' + todayR.length + '</b><span>' + T('cc.plays') + '</span></div>' +
-      GK.map(function (k) { return '<div><b>' + given(todayR, k) + '</b><span>' + T('cc.giftsGiven', { g: T('cc.giftLbl.' + k), left: st[k] }) + '</span></div>'; }).join('') + '</div>');
+    if (tab === 'overview') {
+      // today: plays + gifts given per gift (+ left in stock), Google Sheet health, gifts not handed over yet, score spread
+      h += sec(T('cc.today') + ' · ' + today, '<div class="cc-stat">' +
+        '<div class="pl"><b>' + todayR.length + '</b><span>' + T('cc.plays') + '</span></div>' +
+        GK.map(function (k) {
+          var pct = Math.min(100, Math.round(100 * st[k] / Math.max(1, D[k])));
+          return '<div>' + gpic(k) + '<b>' + given(todayR, k) + '</b><span>' + T('cc.giftLbl.' + k) + '</span><em>' + T('cc.leftOf', { n: st[k], t: D[k] }) + '</em><i class="cc-bar' + (pct < 10 ? ' low' : '') + '"><i style="width:' + pct + '%"></i></i></div>';
+        }).join('') + '</div>');
+      h += sec(T('cc.sheet'), box(row('<span id="a-sheet-status">' + sheetLine() + '</span>', btn('sheetSend', T('cc.sendNow')))));
+      var pend = pending.length ? pending.slice().reverse().map(function (r) {
+        return row('<span class="mono">' + esc(r.rewardCode) + '</span> · ' + esc(r.name) + '<span class="cc-pts">' + esc(r.giftName) + '</span>', '<button class="btn vn cc-mb" data-redeem="' + esc(r.id) + '">' + T('cc.redeem') + '</button>');
+      }).join('') : row('<span class="cc-pts">' + T('cc.none') + '</span>', '');
+      h += sec(T('cc.pending', { n: pending.length, d: cnt(todayR, function (r) { return r.reason === 'duplicate'; }) }), box(pend));
+      var hist = order.map(function (g) {
+        var arr = todayR.filter(function (r) { return r.game === g; }), b = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        arr.forEach(function (r) { b[Math.min(9, Math.floor((r.scorePct || 0) / 10))]++; }); // scorePct = score 0–100
+        var mx = Math.max.apply(null, b.concat([1]));
+        var t1 = cnt(arr, function (r) { return r.tierByScore >= 2; }), t2 = cnt(arr, function (r) { return r.tierByScore === 3; }); // v2.7 tiers 1 / 2 / 3
+        return row(G[g].name + ' · ' + T('cc.playsN', { n: arr.length }) + '<span class="cc-pts">' + (arr.length ? T('cc.reach', { a: Math.round(100 * t1 / arr.length), b: Math.round(100 * t2 / arr.length) }) : T('cc.noPlays')) + '</span>',
+          '<div class="cc-hist">' + b.map(function (v) { return '<i style="height:' + Math.round(100 * v / mx) + '%"></i>'; }).join('') + '</div>', 'h');
+      }).join('');
+      h += sec(T('cc.hist'), box(hist));
+    }
 
-    // 2 GAME · ĐỘ KHÓ (applies from the next game; the last playable game cannot be switched off)
-    h += sec(T('cc.games'), box(order.map(function (g) {
-      var on = !!s.games[g], d = diff[g] || 'normal';
-      return '<div class="cc-row g"><div class="lbl">' + PIC[g] + G[g].name + '</div><div class="cc-seg">' +
-        DIFF.map(function (o) { return '<button data-g="' + g + '" data-diff="' + o + '"' + (d === o ? ' class="on"' : '') + '>' + T('cc.' + o) + '</button>'; }).join('') +
-        '</div>' + tg(on, 'data-game-toggle="' + g + '"') + '</div>';
-    }).join('') + row(T('cc.intro'), tg(s.productIntro !== false, 'data-toggle="productIntro"'), 'intro')) + '<p class="cc-note">' + T('cc.gamesNote') + '</p>');
+    if (tab === 'gifts') {
+      // event stock per gift (−10 −1 +1 +10), thresholds on the 0–100 score, rules, gift names VI / EN
+      h += sec(T('cc.stockHead'), box(GK.map(function (k) {
+        return row(gpic(k) + '<span class="cc-gl">' + esc(gname(k)) + '<span class="cc-pts">' + T('cc.given', { d: given(todayR, k), e: given(real, k) }) + '</span></span>',
+          stp('gs_' + k, st[k], [-10, -1, 1, 10]), 'gs');
+      }).join('')));
+      h += sec(T('cc.thHead'), box(
+        row(T('cc.thMid') + '<span class="cc-pts">' + T('cc.thRange', { a: s.thresholds.mid, b: s.thresholds.high - 1 }) + ' · ' + T('cc.thLow', { n: s.thresholds.mid }) + '</span>', stp('th_mid', s.thresholds.mid, [-5, -1, 1, 5])) +
+        row(T('cc.thHigh') + '<span class="cc-pts">' + T('cc.thRange', { a: s.thresholds.high, b: 100 }) + '</span>', stp('th_high', s.thresholds.high, [-5, -1, 1, 5]))) +
+        '<p class="cc-note">' + T('cc.giftsNote') + '</p>');
+      h += sec(T('cc.rules'), box(
+        row(T('cc.perPhone'), '<div class="cc-seg">' + [['perEvent', T('cc.perEvent')], ['perDay', T('cc.perDay')], ['none', T('cc.unlimited')]].map(function (o) {
+          return '<button data-rule="' + o[0] + '"' + (s.duplicateRule === o[0] ? ' class="on"' : '') + '>' + o[1] + '</button>';
+        }).join('') + '</div>') +
+        row(T('cc.formNoTier'), tg(s.requireFormForNoTier, 'data-toggle="requireFormForNoTier"'))));
+      var ge = s.giftsEn || {};
+      h += sec(T('cc.namesHead'), box(GK.map(function (k) { // one row per gift: VI name | EN name (empty EN = the VI name)
+        return row(T('cc.giftLbl.' + k), '<input class="cc-in" id="a-gn-' + k + '" maxlength="60" autocomplete="off" placeholder="VI" value="' + esc(gname(k)) + '">' +
+          '<input class="cc-in" id="a-ge-' + k + '" maxlength="60" autocomplete="off" placeholder="EN" value="' + esc(ge[k]) + '">', 'nm');
+      }).join('') + row('<span class="cc-pts">' + T('cc.namesNote') + '</span>', btn('saveGifts', T('cc.save')))));
+    }
 
-    // 3 QUÀ (v2.7): event stock per gift (−10 −1 +1 +10), thresholds 70 / 90 on the 0–100 score, gift names VI / EN
-    var q = '<div class="cc-sub">' + T('cc.stockHead') + '</div>';
-    GK.forEach(function (k) {
-      q += row(gpic(k) + '<span class="cc-gl">' + esc(gname(k)) + '<span class="cc-pts">' + T('cc.given', { d: given(todayR, k), e: given(real, k) }) + '</span></span>',
-        stp('gs_' + k, st[k] + ' <small>' + T('cc.stockLeft') + '</small>', [-10, -1, 1, 10]), 'gs');
-    });
-    q += row(T('cc.thMid') + '<span class="cc-pts">' + T('cc.thRange', { a: s.thresholds.mid, b: s.thresholds.high - 1 }) + ' · ' + T('cc.thLow', { n: s.thresholds.mid }) + '</span>', stp('th_mid', s.thresholds.mid, [-5, -1, 1, 5]), 'th');
-    q += row(T('cc.thHigh') + '<span class="cc-pts">' + T('cc.thRange', { a: s.thresholds.high, b: 100 }) + '</span>', stp('th_high', s.thresholds.high, [-5, -1, 1, 5]), 'th');
-    var ge = s.giftsEn || {};
-    q += '<div class="cc-sub">' + T('cc.namesHead') + '</div>';
-    GK.forEach(function (k) { // one row per gift: VI name | EN name (empty EN = the VI name)
-      q += row(T('cc.giftLbl.' + k), '<input class="cc-in" id="a-gn-' + k + '" maxlength="60" autocomplete="off" placeholder="VI" value="' + esc(gname(k)) + '">' +
-        '<input class="cc-in" id="a-ge-' + k + '" maxlength="60" autocomplete="off" placeholder="EN" value="' + esc(ge[k]) + '">', 'nm');
-    });
-    q += row('<span class="cc-pts">' + T('cc.namesNote') + '</span>', btn('saveGifts', T('cc.save')));
-    q += row(T('cc.perPhone'), '<div class="cc-seg w">' + [['perEvent', T('cc.perEvent')], ['perDay', T('cc.perDay')], ['none', T('cc.unlimited')]].map(function (o) {
-      return '<button data-rule="' + o[0] + '"' + (s.duplicateRule === o[0] ? ' class="on"' : '') + '>' + o[1] + '</button>';
-    }).join('') + '</div>');
-    q += row(T('cc.formNoTier'), tg(s.requireFormForNoTier, 'data-toggle="requireFormForNoTier"'));
-    var hist = order.map(function (g) {
-      var arr = todayR.filter(function (r) { return r.game === g; }), b = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-      arr.forEach(function (r) { b[Math.min(9, Math.floor((r.scorePct || 0) / 10))]++; }); // scorePct = score 0–100
-      var mx = Math.max.apply(null, b.concat([1]));
-      var t1 = cnt(arr, function (r) { return r.tierByScore >= 2; }), t2 = cnt(arr, function (r) { return r.tierByScore === 3; }); // v2.7 tiers 1 / 2 / 3
-      return row(G[g].name + ' · ' + T('cc.playsN', { n: arr.length }) + '<span class="cc-pts">' + (arr.length ? T('cc.reach', { a: Math.round(100 * t1 / arr.length), b: Math.round(100 * t2 / arr.length) }) : T('cc.noPlays')) + '</span>',
-        '<div class="cc-hist">' + b.map(function (v) { return '<i style="height:' + Math.round(100 * v / mx) + '%"></i>'; }).join('') + '</div>', 'h');
-    }).join('');
-    var pend = pending.length ? pending.slice().reverse().map(function (r) {
-      return row(esc(r.rewardCode) + ' · ' + esc(r.name) + ' · ' + esc(r.giftName), '<button class="btn vn cc-mb" data-redeem="' + esc(r.id) + '">' + T('cc.redeem') + '</button>');
-    }).join('') : '<p class="cc-note">' + T('cc.none') + '</p>';
-    h += sec(T('cc.gifts'), box(q) + '<p class="cc-note">' + T('cc.giftsNote') + '</p>' +
-      '<h4>' + T('cc.hist') + '</h4>' + box(hist) + '<h4>' + T('cc.pending', { n: pending.length, d: cnt(todayR, function (r) { return r.reason === 'duplicate'; }) }) + '</h4>' + box(pend));
+    if (tab === 'games') {
+      // games on / off + difficulty (applies from the next game; the last playable game cannot be switched off), intro, sound
+      h += sec(T('cc.games'), box(order.map(function (g) {
+        var on = !!s.games[g], d = diff[g] || 'normal';
+        return '<div class="cc-row g"><div class="lbl">' + PIC[g] + '<span>' + G[g].name + '<span class="cc-pts">' + G[g].product + '</span></span></div><div class="cc-r"><div class="cc-seg">' +
+          DIFF.map(function (o) { return '<button data-g="' + g + '" data-diff="' + o + '"' + (d === o ? ' class="on"' : '') + '>' + T('cc.' + o) + '</button>'; }).join('') +
+          '</div>' + tg(on, 'data-game-toggle="' + g + '"') + '</div></div>';
+      }).join('') + row(T('cc.intro'), tg(s.productIntro !== false, 'data-toggle="productIntro"'))) + '<p class="cc-note">' + T('cc.gamesNote') + '</p>');
+      h += sec(T('cc.sound'), box(
+        row(T('cc.sfx'), stp('vol', Math.round(s.volume * 100) + '%', [-10, 10]) + tg(s.sound, 'data-toggle="sound"')) +
+        row(T('cc.music'), stp('bgmvol', Math.round(s.bgmVolume * 100) + '%', [-10, 10]) + tg(s.bgm, 'data-toggle="bgm"')) +
+        row(esc(T('cc.latency')) + '<span class="cc-pts">' + T('cc.latencyNote') + '</span>', stp('lat', s.latencyMs + 'ms', [-10, 10]))));
+    }
 
-    // 4 ÂM THANH
-    h += sec(T('cc.sound'), box(
-      row(T('cc.sfx'), tg(s.sound, 'data-toggle="sound"') + stp('vol', Math.round(s.volume * 100) + '%', [-10, 10])) +
-      row(T('cc.music'), tg(s.bgm, 'data-toggle="bgm"') + stp('bgmvol', Math.round(s.bgmVolume * 100) + '%', [-10, 10])) +
-      row(esc(T('cc.latency')), stp('lat', s.latencyMs + 'ms', [-10, 10]))) +
-      '<p class="cc-note">' + T('cc.latencyNote') + '</p>');
+    if (tab === 'data') {
+      var lv = cnt(todayR, function (r) { return r.lang === 'en'; });
+      h += sec(T('cc.sheet'), box(
+        row('<span id="a-sheet-status">' + sheetLine() + '</span>', btn('sheetSend', T('cc.sendNow'))) +
+        row('<input class="cc-in url" id="a-sheet-url" type="url" autocomplete="off" spellcheck="false" maxlength="300" placeholder="https://script.google.com/macros/s/…/exec" value="' + esc(s.sheetUrl) + '">', btn('sheetPing', T('cc.test')), 'in') +
+        row(T('cc.secret'), '<input class="cc-in" id="a-sheet-token" type="password" autocomplete="off" spellcheck="false" maxlength="100" value="' + esc(s.sheetToken) + '"><button class="cc-eye" data-a="eye" aria-label="' + T('cc.showSecret') + '">' + EYE + '</button>', 'f') +
+        row(T('cc.kiosk'), '<input class="cc-in" id="a-sheet-kiosk" autocomplete="off" maxlength="30" value="' + esc(s.kioskName) + '">' + btn('sheetSave', T('cc.save')), 'f') +
+        row(T('cc.pingResult'), '<span class="a-ping" id="a-sheet-ping"></span>') +
+        row(T('cc.langToday'), '<span class="cc-val" id="a-lang-count">' + T('cc.langCount', { vi: todayR.length - lv, en: lv }) + '</span>')) +
+        '<p class="cc-note">' + T('cc.sheetNote') + '</p>');
+      h += sec(T('cc.export'), box(row('<span class="cc-pts">' + T('cc.exportNote') + '</span>', '') +
+        '<div class="cc-btns">' + btn('csvToday', T('cc.csvToday')) + btn('csvAll', T('cc.csvAll')) + btn('logs', T('cc.log')) + '</div>'));
+    }
 
-    // 5 DỮ LIỆU · GOOGLE SHEET (item B)
-    var lv = cnt(todayR, function (r) { return r.lang === 'en'; });
-    h += sec(T('cc.sheet'), box(
-      row('<span id="a-sheet-status">' + sheetLine() + '</span>', btn('sheetSend', T('cc.sendNow'))) +
-      row('<input class="cc-in url" id="a-sheet-url" type="url" autocomplete="off" spellcheck="false" maxlength="300" placeholder="https://script.google.com/macros/s/…/exec" value="' + esc(s.sheetUrl) + '">', btn('sheetPing', T('cc.test')), 'in') +
-      row(T('cc.secret'), '<input class="cc-in" id="a-sheet-token" type="password" autocomplete="off" spellcheck="false" maxlength="100" value="' + esc(s.sheetToken) + '"><button class="cc-eye" data-a="eye" aria-label="' + T('cc.showSecret') + '">' + EYE + '</button>', 'f') +
-      row(T('cc.kiosk'), '<input class="cc-in" id="a-sheet-kiosk" autocomplete="off" maxlength="30" value="' + esc(s.kioskName) + '">' + btn('sheetSave', T('cc.save')), 'f') +
-      row(T('cc.pingResult'), '<span class="a-ping" id="a-sheet-ping"></span>') +
-      row(T('cc.langToday'), '<span class="cc-val" id="a-lang-count">' + T('cc.langCount', { vi: todayR.length - lv, en: lv }) + '</span>')) +
-      '<p class="cc-note">' + T('cc.sheetNote') + '</p>');
-
-    // 6 MÀN CHỜ (read-only: the v2.2 Admin could not edit them)
-    var I = s.idleSec;
-    var dl = s.defaultLang === 'en' ? 'en' : 'vi';
-    h += sec(T('cc.idle'), box(
-      row(T('cc.defaultLang'), '<div class="cc-seg">' + ['vi', 'en'].map(function (l) { return '<button data-deflang="' + l + '"' + (dl === l ? ' class="on"' : '') + '>' + l.toUpperCase() + '</button>'; }).join('') + '</div>') +
-      row(T('cc.promo'), '<span class="cc-val">' + T(App.promoReady ? 'cc.yes' : 'cc.no') + '</span>') +
-      row(T('cc.idleAfter'), '') +
-      '<p class="cc-note in">' + T('cc.idleList', I) + '</p>' +
-      row(T('cc.reloadIdle'), '<span class="cc-val">' + T('cc.hours', { n: s.autoReloadHours }) + '</span>')));
-
-    // 7 XUẤT DỮ LIỆU
-    h += sec(T('cc.export'), '<div class="cc-btns">' + btn('csvToday', T('cc.csvToday')) + btn('csvAll', T('cc.csvAll')) + btn('logs', T('cc.log')) + '</div>' +
-      '<p class="cc-note">' + T('cc.exportNote') + '</p>');
-
-    // 8 NÂNG CAO
-    h += sec(T('cc.advanced'), box(
-      row(T('cc.testMode'), tg(s.testMode, 'data-toggle="testMode"')) +
-      row(T('cc.pin') + (msg ? ' <span class="cc-pts">' + esc(msg) + '</span>' : ''), btn('pinChange', T('cc.pinChange'))) +
-      row(T('cc.testPlays', { n: tests }), btn('clearTest', T(arm === 'clearTest' ? 'cc.tapAgain' : 'cc.delTest'), 'danger')) +
-      row(T('cc.allData', { n: recs.length }), btn('clear', T(arm === 'clear' ? 'cc.tapAgainAll' : 'cc.delAll'), 'danger')) +
-      row(T('cc.version'), '<span class="cc-val">v' + esc(s.appVersion) + ' · ' + T('cc.clock') + ' ' + new Date().toLocaleString(I18N.lang === 'en' ? 'en-GB' : 'vi-VN') + '</span>')) +
-      '<div class="cc-btns">' + btn('reload', T('cc.reload')) + btn('exit', T('cc.exit')) + '</div>');
+    if (tab === 'system') {
+      var I = s.idleSec, dl = s.defaultLang === 'vi' ? 'vi' : 'en';
+      h += sec(T('cc.idle'), box(
+        row(T('cc.defaultLang') + '<span class="cc-pts">' + T('cc.defaultLangNote') + '</span>', '<div class="cc-seg">' + ['en', 'vi'].map(function (l) { return '<button data-deflang="' + l + '"' + (dl === l ? ' class="on"' : '') + '>' + l.toUpperCase() + '</button>'; }).join('') + '</div>') +
+        row(T('cc.promo'), '<span class="cc-val">' + T(App.promoReady ? 'cc.yes' : 'cc.no') + '</span>') +
+        row(T('cc.idleAfter') + '<span class="cc-pts">' + T('cc.idleList', I) + '</span>', '') +
+        row(T('cc.reloadIdle'), '<span class="cc-val">' + T('cc.hours', { n: s.autoReloadHours }) + '</span>')));
+      h += sec(T('cc.advanced'), box(
+        row(T('cc.testMode'), tg(s.testMode, 'data-toggle="testMode"')) +
+        row(T('cc.pin') + (msg ? '<span class="cc-pts">' + esc(msg) + '</span>' : ''), btn('pinChange', T('cc.pinChange'))) +
+        row(T('cc.testPlays', { n: tests }), btn('clearTest', T(arm === 'clearTest' ? 'cc.tapAgain' : 'cc.delTest'), 'danger')) +
+        row(T('cc.allData', { n: recs.length }), btn('clear', T(arm === 'clear' ? 'cc.tapAgainAll' : 'cc.delAll'), 'danger')) +
+        row(T('cc.version'), '<span class="cc-val">v' + esc(s.appVersion) + ' · ' + T('cc.clock') + ' ' + new Date().toLocaleString(I18N.lang === 'en' ? 'en-GB' : 'vi-VN') + '</span>')) +
+        '<div class="cc-btns">' + btn('reload', T('cc.reload')) + btn('exit', T('cc.exit'), 'ghost') + '</div>');
+    }
 
     panel.innerHTML = h;
     panel.scrollTop = keep;
@@ -207,6 +217,8 @@
     armClose();
     var t = e.target.closest('button'); if (!t) return;
     if (t.hasAttribute('data-pin')) return onPin(t.getAttribute('data-pin'));
+    if (t.hasAttribute('data-tab')) { tab = t.getAttribute('data-tab'); arm = ''; render(); panel.scrollTop = 0; return; }
+    if (t.hasAttribute('data-lang') && t.parentNode.id === 'cc-lang') { I18N.set(t.getAttribute('data-lang')); return; } // langchange → Admin.render()
     if (t.hasAttribute('data-step')) {
       var key = t.getAttribute('data-step'), d = +t.getAttribute('data-d');
       if (key.indexOf('gs_') === 0) { var gk = key.slice(3), st = Store.giftStock(); Store.setGiftStock(gk, st[gk] + d); Store.log('stock ' + gk + ' ' + st[gk] + ' -> ' + Store.giftStock()[gk]); render(); return; }

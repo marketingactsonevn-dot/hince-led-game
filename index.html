@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="vi">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
@@ -51,7 +51,7 @@
     <video id="attract-video" muted loop playsinline preload="auto"></video>
     <div class="abs paper at-note"><img src="assets/v26/paper/arrow.svg" alt=""><span class="disp it" data-i18n="attract.note"></span></div>
     <!-- staff corners (never start a game; app.js corner(): stopPropagation on pointerdown + click): ⚙ → PIN → Control Center, VI | EN, ▶ VIDEO (.on when the promo loads) -->
-    <button class="at-corner" id="cc-btn" aria-label="control center"><svg viewBox="0 0 24 24" fill="none" stroke="#7A5A5E" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg></button>
+    <button class="at-corner" id="cc-btn" aria-label="control center settings"><svg viewBox="0 0 24 24"><path fill="#7A5A5E" fill-rule="evenodd" d="M10.07 4.13 L10.42 1.52 L13.58 1.52 L13.93 4.13 L16.20 5.08 L18.29 3.47 L20.53 5.71 L18.92 7.80 L19.87 10.07 L22.48 10.42 L22.48 13.58 L19.87 13.93 L18.92 16.20 L20.53 18.29 L18.29 20.53 L16.20 18.92 L13.93 19.87 L13.58 22.48 L10.42 22.48 L10.07 19.87 L7.80 18.92 L5.71 20.53 L3.47 18.29 L5.08 16.20 L4.13 13.93 L1.52 13.58 L1.52 10.42 L4.13 10.07 L5.08 7.80 L3.47 5.71 L5.71 3.47 L7.80 5.08Z M12 8.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7Z"/></svg></button>
     <div class="lang-sw" id="lang-sw"><button data-lang="vi">VI</button><button data-lang="en">EN</button></div>
     <button class="at-corner" id="promo-btn" aria-label="promo video"><svg viewBox="0 0 10 12"><path d="M1 0.5 L9.5 6 L1 11.5 Z"/></svg>VIDEO</button>
   </section>
@@ -399,8 +399,10 @@
   <!-- ============ CONTROL CENTER (v2.3, admin.js; .pin = PIN pad showing, ĐÓNG hidden) ============ -->
   <div class="overlay admin v2 pin" id="o-admin">
     <div class="abs paper cc-win"></div>
-    <div class="cc-h">CONTROL CENTER</div>
+    <div class="cc-h">Control Center</div>
+    <div class="cc-lang" id="cc-lang"><button data-lang="vi">VI</button><button data-lang="en">EN</button></div>
     <button class="btn cc-x" id="cc-close" data-a="close" data-i18n="cc.close"></button>
+    <div class="cc-tabs" id="cc-tabs"></div><!-- v2.7.1 tabs (admin.js tabs()) -->
     <div class="admin-panel" id="admin-panel"></div>
   </div>
 </div>
