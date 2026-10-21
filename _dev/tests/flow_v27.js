@@ -47,10 +47,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   console.log('FLOW (http, Chromium 1080x1920)');
   const { p, errs } = await open(base + 'index.html');
-  await t('first run: event stock 500 / 200 / 100 / 50, settings 70 / 90, version 2.7.1, idle screen in English', async () => {
+  await t('first run: event stock 500 / 200 / 100 / 50, settings 70 / 90, version 2.8.0, idle screen in English', async () => {
     const o = await p.evaluate(() => ({ st: Store.giftStock(), th: App.settings.thresholds, v: App.settings.appVersion, lang: I18N.lang, def: App.settings.defaultLang }));
     assert.strictEqual(o.lang, 'en'); assert.strictEqual(o.def, 'en');
-    assert.deepStrictEqual(o.st, { hairTie: 500, mirror: 200, mini: 100, full: 50 }); assert.deepStrictEqual(o.th, { mid: 70, high: 90 }); assert.strictEqual(o.v, '2.7.1');
+    assert.deepStrictEqual(o.st, { hairTie: 500, mirror: 200, mini: 100, full: 50 }); assert.deepStrictEqual(o.th, { mid: 70, high: 90 }); assert.strictEqual(o.v, '2.8.0');
   });
   let full;
   await t('score 96/100 → full-size: result shows 96 + gift, receipt keeps the same gift, stock −1', async () => {
@@ -58,7 +58,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     assert.strictEqual(full.res.score, '96'); assert.strictEqual(full.res.r.pick.giftKey, 'full'); assert(/rev/.test(full.res.rev));
     assert.strictEqual(full.rec.giftKey, 'full'); assert.strictEqual(full.rec.tier, 3); assert.strictEqual(full.rec.scorePct, 96); assert.strictEqual(full.rec.score, 1440);
     assert.strictEqual(full.rec.maxScore, 1500); assert.strictEqual(full.rec.giftName, 'hince Nu Blur Tint'); assert.strictEqual(full.rec.receiptGift, 'hince Nu Blur Tint');
-    assert.strictEqual(full.rec.receiptScore, '96 / 100'); assert.strictEqual(full.rec.appVersion, '2.7.1');
+    assert.strictEqual(full.rec.receiptScore, '96 / 100'); assert.strictEqual(full.rec.appVersion, '2.8.0');
     assert.strictEqual((await p.evaluate(() => Store.giftStock())).full, 49);
   });
   await t('score 78 → Mini; 40 → Hair Tie or Mirror; stock follows', async () => {
@@ -147,6 +147,16 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     await p.click('[data-deflang="en"]');
     await p.click('#cc-close'); assert.strictEqual(await p.evaluate(() => I18N.lang), 'en');
   });
+  await t('brand type (v2.8): titles ask for Constantia, bundled Gelasio is loaded with Vietnamese; labels are Be Vietnam Pro; gift code mono', async () => {
+    await p.evaluate(() => App.home());
+    const o = await p.evaluate(async () => {
+      await document.fonts.load('italic 700 40px Gelasio', 'BLUR Ắ'); await document.fonts.load('400 40px Gelasio', 'Cảm ơn');
+      const ff = id => getComputedStyle(document.querySelector(id)).fontFamily;
+      return { t2: ff('#s-attract .at-t2'), eb: ff('#s-attract .at-eb'), code: ff('#rw-code'),
+        gel: document.fonts.check('italic 700 40px Gelasio', 'Ắ') && document.fonts.check('400 40px Gelasio', 'ơ') };
+    });
+    assert(/^Constantia, "?Gelasio"?/.test(o.t2), o.t2); assert(/Be Vietnam Pro/.test(o.eb), o.eb); assert(/IBM Plex Mono/.test(o.code), o.code); assert(o.gel, 'Gelasio not loaded');
+  });
   await t('no page errors (http)', async () => assert.deepStrictEqual(errs, []));
 
   console.log('MIGRATION (a v2.6 kiosk)');
@@ -166,7 +176,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     const s = await m.p.evaluate(() => App.settings);
     assert.deepStrictEqual(s.thresholds, { mid: 70, high: 90 }); assert.strictEqual(s.dailyStock, undefined);
     assert.strictEqual(s.gifts.hairTie, 'hince Hair Tie'); assert.strictEqual(s.gifts.tier1, undefined);
-    assert.strictEqual(s.sound, false); assert.strictEqual(s.kioskName, 'LED-2'); assert.strictEqual(s.adminPin, '1234'); assert.strictEqual(s.appVersion, '2.7.1'); assert.strictEqual(s.defaultLang, 'en'); // v2.6 saved 'vi' without anyone choosing it
+    assert.strictEqual(s.sound, false); assert.strictEqual(s.kioskName, 'LED-2'); assert.strictEqual(s.adminPin, '1234'); assert.strictEqual(s.appVersion, '2.8.0'); assert.strictEqual(s.defaultLang, 'en'); // v2.6 saved 'vi' without anyone choosing it
   });
   await t('a phone that got a v2.6 gift is still a duplicate in v2.7', async () => {
     const d = await play(m.p, 'umpah', 1500, 1500, '0907777777');
@@ -181,7 +191,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     assert.strictEqual(r.rec.scorePct, 50); assert.strictEqual(r.rec.tier, 1);
     assert.deepStrictEqual(f.errs, []);
   });
-  await t('service worker caches v2.7.1 (hince-led-v2.7.1) and the app opens offline', async () => {
+  await t('service worker caches v2.8 (hince-led-v2.8) and the app opens offline', async () => {
     const ctx = await browser.newContext({ viewport: { width: 1080, height: 1920 } });
     const q = await ctx.newPage();
     await q.goto(base + 'index.html');
@@ -189,10 +199,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     await q.evaluate(() => navigator.serviceWorker.ready);
     await sleep(1500);
     const keys = await q.evaluate(async () => { const k = await caches.keys(); const c = await caches.open(k[0]); return { k, n: (await c.keys()).length, gift: !!(await c.match('./assets/v27/gifts/nu_blur_full.webp')), bg: !!(await c.match('./assets/v27/bg/bg_rose_paper.jpg')) }; });
-    assert.deepStrictEqual(keys.k, ['hince-led-v2.7.1']); assert(keys.gift && keys.bg, JSON.stringify(keys));
+    assert.deepStrictEqual(keys.k, ['hince-led-v2.8']); assert(keys.gift && keys.bg, JSON.stringify(keys));
     online = false;
     await q.reload(); await q.waitForFunction(() => window.App && App.assetsReady, null, { timeout: 15000 });
-    assert.strictEqual(await q.evaluate(() => App.settings.appVersion), '2.7.1');
+    assert.strictEqual(await q.evaluate(() => App.settings.appVersion), '2.8.0');
     assert(await q.evaluate(() => getComputedStyle(document.getElementById('stage')).backgroundImage.includes('bg_rose_paper')));
     online = true; await ctx.close();
   });

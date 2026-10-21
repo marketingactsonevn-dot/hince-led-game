@@ -185,3 +185,27 @@ Kiểm tra: test logic 27 + 39 pass; `flow_v27.js` 18/18 (thêm kiểm tra: mở
 Giả định:
 - Control Center hiển thị theo ngôn ngữ đang chọn ở màn chờ (giờ mặc định EN). Nhân viên bấm **VI** ở góc trên Control Center để đọc tiếng Việt; đóng Control Center là màn chờ về lại ngôn ngữ mặc định.
 - Không đổi bất kỳ chức năng nào của Control Center, chỉ sắp xếp lại vào tab: kho quà, ngưỡng, quy tắc, tên quà ở tab **Quà**; game/độ khó/âm thanh ở **Game**; Google Sheet + xuất CSV ở **Dữ liệu**; ngôn ngữ mặc định, test mode, PIN, xoá dữ liệu, phiên bản ở **Hệ thống**.
+
+---
+
+## 9. v2.8.0 (21/10/2026) — đổi font theo brand (Constantia)
+
+Theo demo đã duyệt: https://claude.ai/artifact/RGrzAEMk9zXbxQe2kihE56
+
+| Dùng cho | Font |
+|---|---|
+| Số điểm, số lớn, tên khách trên phiếu | Constantia **Bold** |
+| Tên game (Um-Pah! / Tap-Tap!), tiêu đề lớn | Constantia **Bold Italic** |
+| Tagline, câu dẫn ("Find your", "Bạn nhận được", "Cảm ơn") | Constantia **Italic** |
+| Nhãn trang trí ("FLIP ↓", con dấu "TRÚNG QUÀ!") | Constantia |
+| Nút, form, nhãn nhỏ in hoa | Be Vietnam Pro (nhãn nhỏ trước dùng mono → nay Be Vietnam Pro in hoa) |
+| Mã quà U-0012 | IBM Plex Mono (chỉ còn ở đây) |
+
+Bố cục chỉnh theo demo: màn chờ "Find your / **BLUR & GLOW**" 2 hàng 92 px giữa 2 gạch mảnh; cụm tên game gọn (132 px + huy hiệu 58 px, tên sản phẩm in hoa kẹp gạch) ở màn intro, hướng dẫn và lúc đếm 3-2-1; tên game trên vé 38 px; kết quả/phiếu quà/cảm ơn giảm cỡ để chữ rộng hơn không tràn.
+
+**Về font Constantia** (quan trọng):
+- App gọi **Constantia trước**: máy nào có cài Constantia (Windows, Mac có Office) sẽ hiện đúng Constantia.
+- Máy không có (vd. màn LED chạy Android/Chrome) dùng **Gelasio** — font miễn phí (SIL OFL), dáng gần Constantia, đủ dấu tiếng Việt — đã đóng gói trong app (`assets/v28/fonts/`, 236 KB) nên chạy offline.
+- Muốn mọi máy hiện **đúng Constantia**: cần file font Constantia có **giấy phép web/app** [Unverified: brand hince / Actsone đã có chưa]. Khi có file (.woff2, 4 kiểu), em chỉ cần thêm vào `assets/v28/fonts/` + vài dòng CSS.
+
+Kiểm tra: test logic 27 + 39 pass; `flow_v27.js` 19/19 (thêm kiểm tra: tiêu đề gọi Constantia → Gelasio, Gelasio tải được kèm dấu tiếng Việt, nhãn nhỏ là Be Vietnam Pro, mã quà là mono; offline cache `hince-led-v2.8`). Ảnh chụp mới ở `shots/` (chụp bằng Gelasio vì máy test không có Constantia).
