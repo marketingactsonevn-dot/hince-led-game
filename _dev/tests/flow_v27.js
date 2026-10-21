@@ -229,8 +229,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     assert(/OldSerif/.test(await serif()), 'old version should be running first');
     old = false; // deploy the new version
     await q.reload(); // the page (still the old one, from the old SW cache) checks for a new sw.js; the new SW installs and takes over
-    await q.waitForFunction(() => window.App && App.settings && App.settings.appVersion !== '2.0.0', null, { timeout: 30000 }); // the app reloads itself on ATTRACT
-    await q.waitForFunction(() => window.App && App.assetsReady, null, { timeout: 15000 });
+    // the app reloads itself on ATTRACT once the new version takes over: poll through that navigation
+    let v = '', until = Date.now() + 45000;
+    while (Date.now() < until) { await sleep(1000); v = await q.evaluate(() => window.App && App.assetsReady && App.settings.appVersion || '').catch(() => ''); if (v && v !== '2.0.0') break; }
+    assert.strictEqual(v, '2.8.1', 'the kiosk stayed on the old version');
     assert(/^Constantia/.test(await serif()), 'still the old CSS: ' + await serif());
     assert.deepStrictEqual(await q.evaluate(() => caches.keys()), ['hince-led-v2.8.1']);
     await ctx.close(); up.close();
