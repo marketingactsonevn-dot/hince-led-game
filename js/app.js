@@ -315,7 +315,7 @@
     el.style.fontSize = '250px';
     el.textContent = '0';
     show('result');
-    fitFont($('rg-name'), 54);
+    fitFont($('rg-name'), 52);
     var t0 = performance.now(), shown = '0';
     resFx.on = true;
     (function step(now) {
@@ -453,7 +453,7 @@
     $('rw-msg').textContent = !saved ? T('form.err.save') : t0 ? '' : T('reward.show');
     resetHold();
     show('reward');
-    fitFont($('rw-name'), 112); fitFont($('rw-gift'), 64); fitFont($('rw-code'), 96); fitFont($('rw-gname'), 50);
+    fitFont($('rw-name'), 76); fitFont($('rw-gift'), 64); fitFont($('rw-code'), 88); fitFont($('rw-gname'), 48);
     if (!t0) Sfx.play(rec.tier >= 2 ? 'win_t2' : 'win_t1');
   }
   // v2.6 P2: Code 128-B barcode of the gift code as inline SVG bars (no library). C128[v] = bar/space module widths of value v
@@ -495,7 +495,7 @@
     $('th-sub').textContent = T(GAME[g].thanks);
     $('th-count').textContent = T('thanks.back', { s: App.settings.idleSec.thanks });
     show('thanks');
-    fitFont($('th-title'), 170);
+    fitFont($('th-title'), 130);
   }
 
   // ---------------- idle ----------------
@@ -637,7 +637,7 @@
     App.applySettings();
     Sfx.probe(); // optional assets/audio/<key>.mp3|wav|ogg overrides
     ASSETS.preload(function () { App.assetsReady = true; });
-    try { ['500 40px "Noto Serif Display Variable"', 'italic 500 40px "Noto Serif Display Variable"', '500 40px "Be Vietnam Pro"', '600 40px "Be Vietnam Pro"', '600 40px "IBM Plex Mono"', '600 40px VNfix'].forEach(function (f) { document.fonts.load(f).catch(function () { }); }); } catch (e) { }
+    try { ['400 40px Gelasio', 'italic 400 40px Gelasio', '700 40px Gelasio', 'italic 700 40px Gelasio', '500 40px "Be Vietnam Pro"', '600 40px "Be Vietnam Pro"', '600 40px "IBM Plex Mono"', '600 40px VNfix'].forEach(function (f) { document.fonts.load(f).catch(function () { }); }); } catch (e) { }
     fit(); window.addEventListener('resize', fit);
     eachModule(function (m) { m.init(); }); Admin.init(); introInit();
     var v = $('attract-video');
