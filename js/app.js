@@ -121,7 +121,7 @@
       ['o-idle', 'o-policy'].forEach(function (id) { overlay(id, false); });
       App.session = null; App.result = null; App.game = '';
       // periodic reload while idle keeps memory fresh on long days
-      if ((performance.now() - App.bootAt) > App.settings.autoReloadHours * 3600e3 && !$('o-admin').classList.contains('active')) { location.reload(); return; }
+      if (((performance.now() - App.bootAt) > App.settings.autoReloadHours * 3600e3 || App.swUpdated) && !$('o-admin').classList.contains('active')) { location.reload(); return; } // v2.8.1: also a new version installed
       I18N.set(App.settings.defaultLang || 'vi'); // v2.4: the language chosen on ATTRACT holds for one customer
       show('attract');
     } finally { App.homing = false; }
@@ -653,7 +653,22 @@
     Store.log('boot v' + App.settings.appVersion);
     I18N.set(App.settings.defaultLang || 'vi');
     show('attract');
-    if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) { try { navigator.serviceWorker.register('sw.js').catch(function () { }); } catch (e) { } }
+    if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
+      try {
+        // v2.8.1: a new version took over (sw.js skipWaiting + clients.claim) → reload once to run it: now on ATTRACT, else at the next App.home()
+        var hadSw = !!navigator.serviceWorker.controller;
+        navigator.serviceWorker.addEventListener('controllerchange', function () {
+          if (!hadSw || App.swUpdated) return; App.swUpdated = true; Store.log('new version installed');
+          if (App.screen === 'attract' && !$('o-admin').classList.contains('active')) location.reload();
+        });
+        navigator.serviceWorker.register('sw.js').then(function (r) {
+          function nudge() { if (r.waiting) r.waiting.postMessage({ type: 'skipWaiting' }); } // a version left waiting takes over now
+          nudge();
+          r.addEventListener('updatefound', function () { var w = r.installing; if (w) w.addEventListener('statechange', function () { if (w.state === 'installed') nudge(); }); });
+          try { r.update(); } catch (e) { }
+        }, function () { });
+      } catch (e) { }
+    }
   }
   // v2.7 test hooks (screenshots / staff checks from the console): RESULT for a forced score 0–100 and gift; a receipt record for a gift
   function showResultFor(game, s100, giftKey) {

@@ -47,10 +47,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   console.log('FLOW (http, Chromium 1080x1920)');
   const { p, errs } = await open(base + 'index.html');
-  await t('first run: event stock 500 / 200 / 100 / 50, settings 70 / 90, version 2.8.0, idle screen in English', async () => {
+  await t('first run: event stock 500 / 200 / 100 / 50, settings 70 / 90, version 2.8.1, idle screen in English', async () => {
     const o = await p.evaluate(() => ({ st: Store.giftStock(), th: App.settings.thresholds, v: App.settings.appVersion, lang: I18N.lang, def: App.settings.defaultLang }));
     assert.strictEqual(o.lang, 'en'); assert.strictEqual(o.def, 'en');
-    assert.deepStrictEqual(o.st, { hairTie: 500, mirror: 200, mini: 100, full: 50 }); assert.deepStrictEqual(o.th, { mid: 70, high: 90 }); assert.strictEqual(o.v, '2.8.0');
+    assert.deepStrictEqual(o.st, { hairTie: 500, mirror: 200, mini: 100, full: 50 }); assert.deepStrictEqual(o.th, { mid: 70, high: 90 }); assert.strictEqual(o.v, '2.8.1');
   });
   let full;
   await t('score 96/100 → full-size: result shows 96 + gift, receipt keeps the same gift, stock −1', async () => {
@@ -58,7 +58,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     assert.strictEqual(full.res.score, '96'); assert.strictEqual(full.res.r.pick.giftKey, 'full'); assert(/rev/.test(full.res.rev));
     assert.strictEqual(full.rec.giftKey, 'full'); assert.strictEqual(full.rec.tier, 3); assert.strictEqual(full.rec.scorePct, 96); assert.strictEqual(full.rec.score, 1440);
     assert.strictEqual(full.rec.maxScore, 1500); assert.strictEqual(full.rec.giftName, 'hince Nu Blur Tint'); assert.strictEqual(full.rec.receiptGift, 'hince Nu Blur Tint');
-    assert.strictEqual(full.rec.receiptScore, '96 / 100'); assert.strictEqual(full.rec.appVersion, '2.8.0');
+    assert.strictEqual(full.rec.receiptScore, '96 / 100'); assert.strictEqual(full.rec.appVersion, '2.8.1');
     assert.strictEqual((await p.evaluate(() => Store.giftStock())).full, 49);
   });
   await t('score 78 → Mini; 40 → Hair Tie or Mirror; stock follows', async () => {
@@ -176,7 +176,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     const s = await m.p.evaluate(() => App.settings);
     assert.deepStrictEqual(s.thresholds, { mid: 70, high: 90 }); assert.strictEqual(s.dailyStock, undefined);
     assert.strictEqual(s.gifts.hairTie, 'hince Hair Tie'); assert.strictEqual(s.gifts.tier1, undefined);
-    assert.strictEqual(s.sound, false); assert.strictEqual(s.kioskName, 'LED-2'); assert.strictEqual(s.adminPin, '1234'); assert.strictEqual(s.appVersion, '2.8.0'); assert.strictEqual(s.defaultLang, 'en'); // v2.6 saved 'vi' without anyone choosing it
+    assert.strictEqual(s.sound, false); assert.strictEqual(s.kioskName, 'LED-2'); assert.strictEqual(s.adminPin, '1234'); assert.strictEqual(s.appVersion, '2.8.1'); assert.strictEqual(s.defaultLang, 'en'); // v2.6 saved 'vi' without anyone choosing it
   });
   await t('a phone that got a v2.6 gift is still a duplicate in v2.7', async () => {
     const d = await play(m.p, 'umpah', 1500, 1500, '0907777777');
@@ -191,7 +191,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     assert.strictEqual(r.rec.scorePct, 50); assert.strictEqual(r.rec.tier, 1);
     assert.deepStrictEqual(f.errs, []);
   });
-  await t('service worker caches v2.8 (hince-led-v2.8) and the app opens offline', async () => {
+  await t('service worker caches v2.8.1 (hince-led-v2.8.1) and the app opens offline', async () => {
     const ctx = await browser.newContext({ viewport: { width: 1080, height: 1920 } });
     const q = await ctx.newPage();
     await q.goto(base + 'index.html');
@@ -199,12 +199,41 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     await q.evaluate(() => navigator.serviceWorker.ready);
     await sleep(1500);
     const keys = await q.evaluate(async () => { const k = await caches.keys(); const c = await caches.open(k[0]); return { k, n: (await c.keys()).length, gift: !!(await c.match('./assets/v27/gifts/nu_blur_full.webp')), bg: !!(await c.match('./assets/v27/bg/bg_rose_paper.jpg')) }; });
-    assert.deepStrictEqual(keys.k, ['hince-led-v2.8']); assert(keys.gift && keys.bg, JSON.stringify(keys));
+    assert.deepStrictEqual(keys.k, ['hince-led-v2.8.1']); assert(keys.gift && keys.bg, JSON.stringify(keys));
     online = false;
     await q.reload(); await q.waitForFunction(() => window.App && App.assetsReady, null, { timeout: 15000 });
-    assert.strictEqual(await q.evaluate(() => App.settings.appVersion), '2.8.0');
+    assert.strictEqual(await q.evaluate(() => App.settings.appVersion), '2.8.1');
     assert(await q.evaluate(() => getComputedStyle(document.getElementById('stage')).backgroundImage.includes('bg_rose_paper')));
     online = true; await ctx.close();
+  });
+  console.log('UPDATE over a cached older version (GitHub Pages sends max-age=600)');
+  await t('a kiosk on an older version picks up the new CSS / fonts / version by itself (no stale HTTP cache in the new SW cache)', async () => {
+    let old = true;
+    const up = http.createServer((q, r) => {
+      const u = decodeURIComponent(q.url.split('?')[0]).replace(/\/$/, '/index.html'), f = path.join(ROOT, u);
+      fs.readFile(f, (e, b) => {
+        if (e) { r.writeHead(404); r.end(); return; }
+        if (old && u === '/css/style.css') b = Buffer.from(String(b).replace("--serif: Constantia, 'Gelasio', Georgia, serif;", "--serif: 'OldSerif', serif;"));
+        if (old && u === '/js/config.js') b = Buffer.from(String(b).replace(/appVersion: '[^']+'/, "appVersion: '2.0.0'"));
+        if (old && u === '/sw.js') b = Buffer.from(String(b).replace(/var VERSION = '[^']+'/, "var VERSION = 'hince-led-old'"));
+        r.writeHead(200, { 'Content-Type': MIME[path.extname(f)] || 'application/octet-stream', 'Cache-Control': 'max-age=600' }); r.end(b);
+      });
+    });
+    await new Promise(r => up.listen(0, '127.0.0.1', r));
+    const url = 'http://127.0.0.1:' + up.address().port + '/index.html';
+    const ctx = await browser.newContext({ viewport: { width: 1080, height: 1920 } }), q = await ctx.newPage();
+    const serif = () => q.evaluate(() => getComputedStyle(document.getElementById('stage')).getPropertyValue('--serif').trim());
+    await q.goto(url); await q.waitForFunction(() => window.App && App.assetsReady, null, { timeout: 15000 });
+    await q.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: 30000 });
+    await q.reload(); await q.waitForFunction(() => window.App && App.assetsReady, null, { timeout: 15000 });
+    assert(/OldSerif/.test(await serif()), 'old version should be running first');
+    old = false; // deploy the new version
+    await q.reload(); // the page (still the old one, from the old SW cache) checks for a new sw.js; the new SW installs and takes over
+    await q.waitForFunction(() => window.App && App.settings && App.settings.appVersion !== '2.0.0', null, { timeout: 30000 }); // the app reloads itself on ATTRACT
+    await q.waitForFunction(() => window.App && App.assetsReady, null, { timeout: 15000 });
+    assert(/^Constantia/.test(await serif()), 'still the old CSS: ' + await serif());
+    assert.deepStrictEqual(await q.evaluate(() => caches.keys()), ['hince-led-v2.8.1']);
+    await ctx.close(); up.close();
   });
   await browser.close(); srv.close();
   console.log(`\n${passed} flow checks passed` + (process.exitCode ? ' — SOME FAILED' : ''));

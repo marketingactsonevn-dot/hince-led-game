@@ -1,5 +1,5 @@
 /* Offline cache for hosted mode (https). Bump VERSION when files change. */
-var VERSION = 'hince-led-v2.8';
+var VERSION = 'hince-led-v2.8.1';
 var FILES = ['./',
   './index.html',
   './manifest.webmanifest',
@@ -129,8 +129,14 @@ var FILES = ['./',
   './js/umpah1.js',
   './js/umpah2.js'];
 self.addEventListener('install', function (e) {
+  // v2.8.1: take over as soon as installed. Called at the end of the install chain it did not take effect (Chromium):
+  // the new version stayed 'waiting' and kiosks kept running the old one until the app was closed.
+  self.skipWaiting();
   e.waitUntil(caches.open(VERSION).then(function (c) {
-    return c.addAll(FILES).then(function () {
+    // v2.8.1: cache: 'reload' = straight from the server. Through the browser's HTTP cache (GitHub Pages: max-age 600) a new
+    // version could store the previous version's files (seen: v2.8 kept the old CSS / fonts until the next release).
+    function fresh(u) { return new Request(u, { cache: 'reload' }); }
+    return c.addAll(FILES.map(fresh)).then(function () {
       // optional: per-kiosk config.local.js, videos + audio overrides (keys = audio.js BGM_KEYS + SFX_KEYS); cache them if present
       var opt = ['./config.local.js', './assets/video/attract.mp4', './assets/video/promo.mp4'];
       ['bgm_lobby', 'bgm_umpah', 'bgm_taptap', 'bgm_umpah2', 'bgm_taptap2', 'ui_tap', 'start', 'select', 'count', 'go', 'um_hold', 'pah', 'tube_fly', 'kiss_color',
@@ -139,10 +145,12 @@ self.addEventListener('install', function (e) {
         'grab_move', 'grab_drop', 'grab_close', 'grab_got', 'grab_slip', 'grab_miss', 'grab_shuffle', 'peek', 'card_flip', 'card_nomatch', 'clear'].forEach(function (k) {
         ['mp3', 'wav', 'ogg'].forEach(function (x) { opt.push('./assets/audio/' + k + '.' + x); });
       });
-      return Promise.all(opt.map(function (u) { return c.add(u).catch(function () { }); }));
+      return Promise.all(opt.map(function (u) { return c.add(fresh(u)).catch(function () { }); }));
     });
-  }).then(function () { return self.skipWaiting(); }));
+  }));
 });
+// the page also asks a waiting version to take over (app.js boot), in case it is already installed and waiting
+self.addEventListener('message', function (e) { if (e.data && e.data.type === 'skipWaiting') self.skipWaiting(); });
 self.addEventListener('activate', function (e) {
   e.waitUntil(caches.keys().then(function (keys) {
     return Promise.all(keys.filter(function (k) { return k !== VERSION; }).map(function (k) { return caches.delete(k); }));
