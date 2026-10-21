@@ -13,7 +13,7 @@
   var S = null, raf = 0, t0 = 0, running = false, onEnd = null, latency = 0;
   var fx = [], laneFlash = [-1e9, -1e9, -1e9, -1e9];
   var comboEl, timeEl, scoreEl, segEls, lastSec, lastLit, lastScore, lastCombo; // HUD: DOM written only on change
-  var FONT = 'italic 600 70px "Noto Serif Display Variable"';
+  var FONT = 'italic 700 70px Gelasio'; // v2.8: the bundled brand-serif stand-in (stamps use Constantia first when installed)
 
   function cx(l) { return LX + l * LP + LW / 2; } // lane centre: 172.5, 417.5, 662.5, 907.5
   function padAt(l) { return [cx(l) - PAD[0], HIT - PAD[1]]; } // drawImage(pad, cx − 122, HIT − 116): cap centre == (cx, HIT)
@@ -106,13 +106,13 @@
   function sticker(im, w) { var h = w * im.naturalHeight / im.naturalWidth, c = canvasOf(w, h); c.getContext('2d').drawImage(im, 0, 0, w, h); return c; }
   // stamp word: italic serif #6E4E69 on cream .88, 5 px border, radius 14, rotated −8°
   function makeStamp(s, px) {
-    var m = canvasOf(10, 10).getContext('2d'); m.font = 'italic 600 ' + px + 'px "Noto Serif Display Variable", serif';
+    var m = canvasOf(10, 10).getContext('2d'); m.font = 'italic 700 ' + px + 'px Constantia, Gelasio, serif';
     var tw = Math.ceil(m.measureText(s).width), bw = tw + 44, bh = Math.ceil(px * 1.18) + 16, d = Math.ceil(Math.hypot(bw, bh)) + 8;
     var c = canvasOf(d, d), x = c.getContext('2d');
     x.translate(d / 2, d / 2); x.rotate(-8 * Math.PI / 180);
     x.fillStyle = 'rgba(251,243,240,.88)'; rr(x, -bw / 2, -bh / 2, bw, bh, 14); x.fill();
     x.strokeStyle = '#6E4E69'; x.lineWidth = 5; rr(x, -bw / 2 + 2.5, -bh / 2 + 2.5, bw - 5, bh - 5, 12); x.stroke();
-    x.fillStyle = '#6E4E69'; x.font = 'italic 600 ' + px + 'px "Noto Serif Display Variable", serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.fillStyle = '#6E4E69'; x.font = 'italic 700 ' + px + 'px Constantia, Gelasio, serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
     x.fillText(s, 0, -px * 0.04);
     return c;
   }

@@ -20,4 +20,4 @@ sheet('compare_keyboard.jpg', [('before_v26_05_form_name_vi', 'TRƯỚC: phím t
 sheet('gifts_result.jpg', [('04_result_hairTie', '52 → Hair Tie'), ('04_result_mirror', '61 → Heart Mirror'), ('04_result_mini', '78 → Nu Blur Mini'), ('04_result_full', '96 → Nu Blur Tint')])
 sheet('gifts_effect.jpg', [('04_result_anim_hairTie', 'Hiệu ứng: Hair Tie (nhẹ)'), ('04_result_anim_mini', 'Mini (vừa)'), ('04_result_anim_full', 'Full-size (mạnh nhất)'), ('04_result_soldout', 'Hết sạch quà')])
 sheet('gifts_receipt.jpg', [('06_reward_hairTie', 'Phiếu: Hair Tie'), ('06_reward_mirror', 'Heart Mirror'), ('06_reward_mini', 'Nu Blur Mini'), ('06_reward_full', 'Nu Blur Tint')])
-sheet('control_center.jpg', [('before_v26_08_cc_gifts', 'TRƯỚC: khu Quà v2.6'), ('08_cc_gifts', 'SAU: kho 4 món + ngưỡng 70/90'), ('08_cc_top', 'SAU: thống kê theo món')])
+sheet('control_center.jpg', [('before_v26_08_cc_gifts', 'TRƯỚC: khu Quà v2.6'), ('08_cc_gifts', 'SAU v2.7.1: tab Quà'), ('08_cc_overview', 'SAU v2.7.1: tab Tổng quan')])

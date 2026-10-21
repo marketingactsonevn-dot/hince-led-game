@@ -166,3 +166,46 @@ NODE_PATH=$(npm root -g) node _dev/tests/shots_v27.js && python3 _dev/tests/cont
 - Code: `index.html`, `css/style.css`, `js/app.js`, `js/logic.js`, `js/config.js`, `js/store.js`, `js/admin.js`, `js/i18n.js`, `js/assets.js`, `js/umpah1.js`, `js/umpah2.js`, `js/taptap.js`, `js/taptap2.js`, `sw.js`, `manifest.webmanifest` (màu theme).
 - Ảnh/video mới: `assets/v27/bg/bg_rose_paper.jpg`, `assets/v27/gifts/*` (8 file), `assets/video/reveal/reveal_*_rose.mp4`. Xoá: `reveal_*_toffee.mp4`.
 - Công cụ dev: `_dev/tests/make_rose_bg.py`, `make_gifts.py`, `shots_v27.js`, `flow_v27.js`, `contact_v27.py`; test `logic.test.js` cập nhật.
+
+---
+
+## 8. Bổ sung v2.7.1 (20/10/2026) — Control Center gọn lại, mặc định tiếng Anh, icon cài đặt
+
+| Việc | Kết quả |
+|---|---|
+| Control Center rối, chữ to và thô | ✅ Chia thành **5 tab**: Tổng quan · Quà · Game · Dữ liệu · Hệ thống (mỗi tab 1 màn, gần như không phải cuộn). Chữ dòng 24 px nét thường (trước 30 px đậm), chú thích 17 px, tiêu đề mục mono 16 px. Thẻ trắng viền mảnh, nút ±, nút chọn và ô nhập nhỏ gọn hơn; BẬT/TẮT thành **công tắc gạt**. Có nút **VI \| EN** ngay trên đầu Control Center. |
+| Ngôn ngữ mặc định | ✅ Màn chờ mở bằng **tiếng Anh**; khách vẫn bấm VI \| EN cho lượt của mình, về màn chờ lại trở về EN. Máy đã chạy bản cũ (đang lưu VI) tự chuyển sang EN **1 lần**; nếu sau đó nhân viên chọn lại VI trong Control Center (tab Hệ thống) thì giữ VI. |
+| Icon nút Control Center giống nút sáng/tối | ✅ Đổi thành **bánh răng cài đặt** (8 răng, lỗ giữa). |
+| Phiên bản | `2.7.1` · bộ nhớ offline `hince-led-v2.7.1` (máy LED tự lấy bản mới). |
+
+Ảnh: [`control_center.jpg`](control_center.jpg) (trước / sau) và `shots/08_cc_overview.jpg`, `08_cc_gifts.jpg`, `08_cc_games.jpg`, `08_cc_data.jpg`, `08_cc_system.jpg`; icon bánh răng ở `shots/01_attract.jpg` (góc trên trái).
+
+Kiểm tra: test logic 27 + 39 pass; `flow_v27.js` 18/18 (thêm kiểm tra: mở bằng EN, PIN 2026 → 5 tab, chọn VI làm mặc định được giữ, máy cũ lưu VI tự chuyển EN).
+
+Giả định:
+- Control Center hiển thị theo ngôn ngữ đang chọn ở màn chờ (giờ mặc định EN). Nhân viên bấm **VI** ở góc trên Control Center để đọc tiếng Việt; đóng Control Center là màn chờ về lại ngôn ngữ mặc định.
+- Không đổi bất kỳ chức năng nào của Control Center, chỉ sắp xếp lại vào tab: kho quà, ngưỡng, quy tắc, tên quà ở tab **Quà**; game/độ khó/âm thanh ở **Game**; Google Sheet + xuất CSV ở **Dữ liệu**; ngôn ngữ mặc định, test mode, PIN, xoá dữ liệu, phiên bản ở **Hệ thống**.
+
+---
+
+## 9. v2.8.0 (21/10/2026) — đổi font theo brand (Constantia)
+
+Theo demo đã duyệt: https://claude.ai/artifact/RGrzAEMk9zXbxQe2kihE56
+
+| Dùng cho | Font |
+|---|---|
+| Số điểm, số lớn, tên khách trên phiếu | Constantia **Bold** |
+| Tên game (Um-Pah! / Tap-Tap!), tiêu đề lớn | Constantia **Bold Italic** |
+| Tagline, câu dẫn ("Find your", "Bạn nhận được", "Cảm ơn") | Constantia **Italic** |
+| Nhãn trang trí ("FLIP ↓", con dấu "TRÚNG QUÀ!") | Constantia |
+| Nút, form, nhãn nhỏ in hoa | Be Vietnam Pro (nhãn nhỏ trước dùng mono → nay Be Vietnam Pro in hoa) |
+| Mã quà U-0012 | IBM Plex Mono (chỉ còn ở đây) |
+
+Bố cục chỉnh theo demo: màn chờ "Find your / **BLUR & GLOW**" 2 hàng 92 px giữa 2 gạch mảnh; cụm tên game gọn (132 px + huy hiệu 58 px, tên sản phẩm in hoa kẹp gạch) ở màn intro, hướng dẫn và lúc đếm 3-2-1; tên game trên vé 38 px; kết quả/phiếu quà/cảm ơn giảm cỡ để chữ rộng hơn không tràn.
+
+**Về font Constantia** (quan trọng):
+- App gọi **Constantia trước**: máy nào có cài Constantia (Windows, Mac có Office) sẽ hiện đúng Constantia.
+- Máy không có (vd. màn LED chạy Android/Chrome) dùng **Gelasio** — font miễn phí (SIL OFL), dáng gần Constantia, đủ dấu tiếng Việt — đã đóng gói trong app (`assets/v28/fonts/`, 236 KB) nên chạy offline.
+- Muốn mọi máy hiện **đúng Constantia**: cần file font Constantia có **giấy phép web/app** [Unverified: brand hince / Actsone đã có chưa]. Khi có file (.woff2, 4 kiểu), em chỉ cần thêm vào `assets/v28/fonts/` + vài dòng CSS.
+
+Kiểm tra: test logic 27 + 39 pass; `flow_v27.js` 19/19 (thêm kiểm tra: tiêu đề gọi Constantia → Gelasio, Gelasio tải được kèm dấu tiếng Việt, nhãn nhỏ là Be Vietnam Pro, mã quà là mono; offline cache `hince-led-v2.8`). Ảnh chụp mới ở `shots/` (chụp bằng Gelasio vì máy test không có Constantia).

@@ -1,6 +1,6 @@
 /* hince LED Game — default settings. Most values can be changed in Admin (saved on the device). */
 window.DEFAULTS = {
-  appVersion: '2.7.0',
+  appVersion: '2.8.0',
   adminPin: '2026',
 
   // v2.7: every game shows a score 0–100 (Logic.score100); one pair of thresholds for all games (Control Center):
@@ -10,7 +10,7 @@ window.DEFAULTS = {
   games: { umpah: true, umpah2: true, taptap: true, taptap2: true },
   // v2.3 độ khó từng game: 'easy' | 'normal' | 'hard' (Control Center; áp dụng từ lượt sau; normal = như v2.2)
   difficulty: { umpah: 'normal', umpah2: 'normal', taptap: 'normal', taptap2: 'normal' },
-  defaultLang: 'vi',                       // v2.4: ngôn ngữ mặc định của màn chờ ('vi' | 'en'); khách chọn VI | EN cho lượt của mình, về màn chờ là trở lại mặc định
+  defaultLang: 'en',                       // v2.7.1: EN (was 'vi'); ngôn ngữ mặc định của màn chờ ('vi' | 'en'); khách chọn VI | EN cho lượt của mình, về màn chờ là trở lại mặc định
   productIntro: true,                     // v2.4: video giới thiệu sản phẩm 3D giữa màn chọn game và màn hướng dẫn (tắt = vào thẳng màn hướng dẫn)
   // v2.7 gift names (Control Center can rename; key = Logic.GIFT_KEYS)
   gifts: { hairTie: 'hince Hair Tie', mirror: 'hince Heart Mirror', mini: 'hince Nu Blur Tint Mini', full: 'hince Nu Blur Tint' },
