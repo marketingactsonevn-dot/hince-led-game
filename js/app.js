@@ -263,7 +263,7 @@
   // RESULT (v2.7): score 0–100 count-up (1.2 s ease-out), 14-cell bar with ticks at the two thresholds; when the count lands,
   // the gift reveal (gift polaroid drops in, photo bounce + shine, paper confetti, TRÚNG QUÀ! stamp). Celebration grows with the gift.
   // #s-result[data-tier] 0 = gifts all gone; .rev = reveal running, .rev-end = final state (a tap skips there).
-  var FX = { hairTie: 1, mirror: 1, mini: 2, full: 3 }, CONF = { 1: 12, 2: 18, 3: 24 };
+  var FX = { mirror: 1, mini: 2, full: 3 }, CONF = { 1: 12, 2: 18, 3: 24 };
   var CONF_COL = ['#EDD7D4', '#9C4A5E', '#F6DDCC', '#FFFBF9'];
   var resFx = { on: false, skipAt: 0, t: [] };
   function num(n) { return n.toLocaleString(en() ? 'en-US' : 'vi-VN'); } // v2.6: 1.200 (VI) / 1,200 (EN)
@@ -415,7 +415,7 @@
     var rec = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
       createdAt: isoLocal(new Date()), date: today, game: r.game, score: r.score, maxScore: r.max, scorePct: r.s100, // v2.7: scorePct = score 0–100 (integer)
-      tierByScore: r.tierByScore, tier: res.tier, giftKey: res.giftKey, reason: res.reason, // tier 1 Hair Tie / Mirror · 2 Mini · 3 full-size
+      tierByScore: r.tierByScore, tier: res.tier, giftKey: res.giftKey, reason: res.reason, // tier 1 Mirror · 2 Mini · 3 full-size
       giftName: res.tier ? giftName(res.giftKey) : '', rewardCode: res.tier ? Store.nextCode(GAME[r.game].prefix) : '',
       name: name, phone: f.phone, consentGift: true, consentMarketing: !!f.cm, consentTextVersion: en() ? 'v1-en' : 'v1',
       redeemed: false, redeemedAt: '', testMode: !!s.testMode, seed: r.seed, appVersion: s.appVersion,

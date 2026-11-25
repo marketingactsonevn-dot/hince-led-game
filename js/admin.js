@@ -76,7 +76,7 @@
     return '<div class="cc-stp' + (one ? ' one' : '') + '">' + deltas.filter(function (d) { return d < 0; }).map(b).join('') + '<span class="v">' + value + '</span>' + deltas.filter(function (d) { return d > 0; }).map(b).join('') + '</div>';
   }
   // v2.7 gifts: key order = Logic.GIFT_KEYS; row picture = the gift photo
-  var GK = ['hairTie', 'mirror', 'mini', 'full'];
+  var GK = ['mirror', 'mini', 'full'];
   function gpic(k) { return '<img class="cc-gimg" src="' + ASSETS.gift(k) + '" alt="">'; }
   function gname(k) { var s = S(); return (s.gifts && s.gifts[k]) || window.DEFAULTS.gifts[k]; }
 

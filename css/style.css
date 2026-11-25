@@ -304,7 +304,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .cc-val { font: 500 21px var(--mono); color: var(--ink); }
 .cc-note { font: 400 18px/1.45 var(--sans); color: var(--ink2); margin: 12px 6px 0; }
 /* overview tiles: plays + one per gift (photo, given today, left / total + bar) */
-.cc-stat { display: grid; grid-template-columns: 1.1fr 1fr 1fr 1fr 1fr; gap: 10px; }
+.cc-stat { display: grid; grid-template-columns: 1.1fr 1fr 1fr 1fr; gap: 10px; }
 .cc-stat > div { position: relative; min-width: 0; background: #FFFBF9; border-radius: 16px; box-shadow: 0 0 0 1px rgba(74,47,51,.07); padding: 14px 14px 18px; }
 .cc-stat > div.pl { background: var(--ink); color: var(--paper); }
 .cc-stat .cc-gimg { position: absolute; right: 8px; top: 8px; width: 46px; height: 46px; }
@@ -544,7 +544,7 @@ input, textarea { -webkit-user-select: text; user-select: text; touch-action: ma
 #s-result .res-close .res-line { margin-top: 150px; }
 
 /* ---------- v2.7 gift reveal (TASK_v2_7 §3): polaroid 480 wide drops in (spring −6° → 2° → −1°, 700 ms), the photo bounces .6 → 1.06 → 1
-   + one diagonal shine, paper confetti bursts and falls (~1.2 s), TRÚNG QUÀ! stamp. data-fx 1 light (Hair Tie / Mirror), 2 Mini, 3 full-size
+   + one diagonal shine, paper confetti bursts and falls (~1.2 s), TRÚNG QUÀ! stamp. data-fx 1 light (Mirror), 2 Mini, 3 full-size
    (double shine + sparkle stickers round the card). transform / opacity only. Base styles = the final state (.rev-end drops the animations). */
 #s-result .res-gift { position: absolute; left: 300px; top: 890px; width: 480px; z-index: 3; visibility: hidden; pointer-events: none; }
 #s-result.rev .res-gift { visibility: visible; }

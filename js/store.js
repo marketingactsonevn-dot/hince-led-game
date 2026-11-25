@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   var K = { settings: 'hince_led_settings_v1', records: 'hince_led_records_v1', stock: 'hince_led_stock_v1', gifts: 'hince_led_gifts_v27', counter: 'hince_led_counter_v1', logs: 'hince_led_logs_v1' };
-  // stock: v2.6 daily stock {date, tier1, tier2} (read once to migrate, then removed); gifts: v2.7 event stock {hairTie, mirror, mini, full}
+  // stock: v2.6 daily stock {date, tier1, tier2} (read once to migrate, then removed); gifts: v2.7 event stock {mirror, mini, full} (Hair Tie dropped v2.8.5)
   var memory = {}; // fallback if localStorage is unavailable
 
   function read(key, fallback) {
@@ -57,7 +57,7 @@
     if (ch) { write(K.settings, saved); log('settings migrated to v2.7.1 (thresholds 70/90, gift names, default language EN)'); }
     return saved;
   }
-  var GK = ['hairTie', 'mirror', 'mini', 'full'];
+  var GK = ['mirror', 'mini', 'full'];
 
   var Store = {
     settings: function () { var o = deepMerge(base(), migrate(read(K.settings, {}))); o.appVersion = window.DEFAULTS.appVersion; o.idleSec = deepMerge(window.DEFAULTS.idleSec, {}); return o; }, // version + idle times follow the code (not editable in Control Center, but saved with the whole object)
@@ -83,7 +83,7 @@
     // v2.3 Control Center "xoá lượt test": drops only testMode records (real records, stock, counters untouched)
     clearTestRecords: function () { var all = Store.records(), keep = all.filter(function (r) { return !r.testMode; }); write(K.records, keep); log('test records cleared ' + (all.length - keep.length)); return all.length - keep.length; },
 
-    // v2.7 event gift stock {hairTie, mirror, mini, full}: no daily refill. First run of v2.7 (also on a v2.6 kiosk that has
+    // v2.7 event gift stock {mirror, mini, full} (v2.8.5: no Hair Tie): no daily refill. First run of v2.7 (also on a v2.6 kiosk that has
     // {date, tier1, tier2}): starts from DEFAULTS.giftStock, the old counts are not carried over.
     giftStock: function () {
       var g = read(K.gifts, null), d = window.DEFAULTS.giftStock, o = {};
@@ -92,6 +92,9 @@
         g = {}; GK.forEach(function (k) { g[k] = d[k]; });
         write(K.gifts, g);
         if (old) { try { window.localStorage.removeItem(K.stock); } catch (e) { } delete memory[K.stock]; log('stock migrated v2.6 ' + JSON.stringify(old) + ' -> v2.7 ' + JSON.stringify(g)); }
+      }
+      if ('hairTie' in g) { // v2.8.5: Hair Tie dropped → that stock is gone and Mirror starts again from DEFAULTS (500), once
+        log('stock v2.8.5 ' + JSON.stringify(g) + ' -> mirror ' + d.mirror); delete g.hairTie; g.mirror = d.mirror; write(K.gifts, g);
       }
       GK.forEach(function (k) { o[k] = Math.max(0, (g[k] | 0)); });
       return o;

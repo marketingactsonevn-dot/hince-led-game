@@ -152,7 +152,7 @@ t('distribution (report)', () => {
 
 console.log('REWARD & DATA');
 // ---- v2.7: score 0–100, 3 tiers, event gift stock (TASK_v2_7 §2) ----
-const FULL = { hairTie: 500, mirror: 200, mini: 100, full: 50 };
+const FULL = { mirror: 500, mini: 100, full: 50 };
 const TH = { mid: 70, high: 90 };
 t('score100: 0–100, rounded, clamped, 100 only for a perfect game', () => {
   assert.strictEqual(L.score100(0, 1500), 0); assert.strictEqual(L.score100(1500, 1500), 100);
@@ -171,55 +171,36 @@ t('tierFor100: 0–69 → 1, 70–89 → 2, 90–100 → 3 (everyone gets a gift
   [90, 95, 100].forEach(v => assert.strictEqual(L.tierFor100(v, TH), 3, v));
   assert.strictEqual(L.tierFor100(60, { mid: 60, high: 80 }), 2); assert.strictEqual(L.tierFor100(80, { mid: 60, high: 80 }), 3);
 });
-t('pickGift: tier 3 → full, tier 2 → mini, tier 1 → hair tie / mirror', () => {
+t('pickGift: tier 3 → full, tier 2 → mini, tier 1 → mirror (v2.8.5: no hair tie)', () => {
   assert.deepStrictEqual(L.pickGift(3, FULL, () => 0.5), { tier: 3, giftKey: 'full', reason: '' });
   assert.deepStrictEqual(L.pickGift(2, FULL, () => 0.5), { tier: 2, giftKey: 'mini', reason: '' });
-  assert.strictEqual(L.pickGift(1, FULL, () => 0).giftKey, 'hairTie');
-  assert.strictEqual(L.pickGift(1, FULL, () => 0.999).giftKey, 'mirror');
-  assert.strictEqual(L.pickGift(1, FULL, () => 0.5).reason, '');
+  assert.deepStrictEqual(L.pickGift(1, FULL, () => 0), { tier: 1, giftKey: 'mirror', reason: '' });
+  assert.deepStrictEqual(L.GIFT_KEYS, ['mirror', 'mini', 'full']);
 });
-t('pickGift fallback: full out → mini, mini out → hair tie / mirror, never above the tier', () => {
+t('pickGift fallback: full out → mini, mini out → mirror, never above the tier', () => {
   assert.deepStrictEqual(L.pickGift(3, { ...FULL, full: 0 }, () => 0.5), { tier: 2, giftKey: 'mini', reason: 'downgraded' });
-  const p = L.pickGift(3, { ...FULL, full: 0, mini: 0 }, () => 0.1);
-  assert.deepStrictEqual(p, { tier: 1, giftKey: 'hairTie', reason: 'downgraded' });
+  assert.deepStrictEqual(L.pickGift(3, { ...FULL, full: 0, mini: 0 }, () => 0.1), { tier: 1, giftKey: 'mirror', reason: 'downgraded' });
   assert.strictEqual(L.pickGift(2, { ...FULL, mini: 0 }, () => 0.9).tier, 1);
-  // never higher than earned, whatever is left
   for (let i = 0; i < 200; i++) {
-    const st = { hairTie: i % 3, mirror: i % 2, mini: i % 5, full: i % 7 };
+    const st = { mirror: i % 2, mini: i % 5, full: i % 7 };
     for (const t of [1, 2, 3]) { const g = L.pickGift(t, st, Math.random); assert(g.tier <= t); if (g.giftKey) { assert.strictEqual(L.GIFT_TIER[g.giftKey], g.tier); assert(st[g.giftKey] > 0); } }
   }
 });
-t('pickGift: one of hair tie / mirror gone → only the other; both gone → outOfStock', () => {
-  for (let i = 0; i < 50; i++) assert.strictEqual(L.pickGift(1, { ...FULL, hairTie: 0 }, Math.random).giftKey, 'mirror');
-  for (let i = 0; i < 50; i++) assert.strictEqual(L.pickGift(1, { ...FULL, mirror: 0 }, Math.random).giftKey, 'hairTie');
-  const none = { hairTie: 0, mirror: 0, mini: 0, full: 0 };
+t('pickGift: a hair tie count left in old stock is never given; all gone → outOfStock', () => {
+  assert.deepStrictEqual(L.pickGift(1, { hairTie: 500, mirror: 0, mini: 0, full: 0 }, Math.random), { tier: 0, giftKey: '', reason: 'outOfStock' });
+  const none = { mirror: 0, mini: 0, full: 0 };
   [1, 2, 3].forEach(t => assert.deepStrictEqual(L.pickGift(t, none, Math.random), { tier: 0, giftKey: '', reason: 'outOfStock' }));
-  // tier 3 with only tier-1 gifts left still gets one (downgraded); missing / negative counts = 0
-  assert.strictEqual(L.pickGift(3, { hairTie: 0, mirror: 3 }, Math.random).giftKey, 'mirror');
-  assert.strictEqual(L.pickGift(1, { hairTie: -4, mirror: 0 }, Math.random).reason, 'outOfStock');
-});
-t('pickGift tier 1: random weighted by stock left (10 000 seeded draws, ±3 %)', () => {
-  for (const [h, m] of [[500, 200], [200, 200], [30, 270], [1, 0]]) {
-    const r = L.rng(2027); let nh = 0;
-    for (let i = 0; i < 10000; i++) if (L.pickGift(1, { hairTie: h, mirror: m, mini: 0, full: 0 }, r).giftKey === 'hairTie') nh++;
-    const want = h / (h + m), got = nh / 10000;
-    assert(Math.abs(got - want) <= 0.03, `hairTie ${h}/${m}: ${got} vs ${want}`);
-  }
-});
-t('pickGift tier 1 drawing down the stock: hair tie and mirror run out together', () => {
-  const r = L.rng(7), st = { hairTie: 500, mirror: 200, mini: 0, full: 0 }; let lastH = -1, lastM = -1, n = 0;
-  while (st.hairTie + st.mirror > 0) { const g = L.pickGift(1, st, r); st[g.giftKey]--; n++; if (!st.hairTie && lastH < 0) lastH = n; if (!st.mirror && lastM < 0) lastM = n; }
-  assert.strictEqual(n, 700);
-  assert(Math.min(lastH, lastM) > 640, 'one gift ran out at ' + Math.min(lastH, lastM) + ' / 700'); // the first one runs out near the end
+  assert.strictEqual(L.pickGift(3, { mirror: 3 }, Math.random).giftKey, 'mirror');
+  assert.strictEqual(L.pickGift(1, { mirror: -4 }, Math.random).reason, 'outOfStock');
 });
 t('resolveReward: keeps the gift picked on RESULT; re-picks only when it is gone', () => {
   const b = { phone: '0901234567', records: [], rule: 'perEvent', today: '2026-11-27', rng: () => 0.5 };
   assert.deepStrictEqual(L.resolveReward(1, { ...b, stock: FULL, giftKey: 'mirror' }), { tier: 1, giftKey: 'mirror', reason: '' });
   assert.deepStrictEqual(L.resolveReward(3, { ...b, stock: FULL, giftKey: 'full' }), { tier: 3, giftKey: 'full', reason: '' });
   assert.deepStrictEqual(L.resolveReward(3, { ...b, stock: FULL, giftKey: 'mini' }), { tier: 2, giftKey: 'mini', reason: 'downgraded' }); // picked while full was out
-  assert.deepStrictEqual(L.resolveReward(1, { ...b, stock: { ...FULL, mirror: 0 }, giftKey: 'mirror' }), { tier: 1, giftKey: 'hairTie', reason: '' });
+  assert.deepStrictEqual(L.resolveReward(1, { ...b, stock: { ...FULL, mirror: 0 }, giftKey: 'mirror' }), { tier: 0, giftKey: '', reason: 'outOfStock' });
   assert.deepStrictEqual(L.resolveReward(3, { ...b, stock: { ...FULL, full: 0 }, giftKey: 'full' }), { tier: 2, giftKey: 'mini', reason: 'downgraded' });
-  assert.deepStrictEqual(L.resolveReward(2, { ...b, stock: { hairTie: 0, mirror: 0, mini: 0, full: 9 }, giftKey: 'mini' }), { tier: 0, giftKey: '', reason: 'outOfStock' });
+  assert.deepStrictEqual(L.resolveReward(2, { ...b, stock: { mirror: 0, mini: 0, full: 9 }, giftKey: 'mini' }), { tier: 0, giftKey: '', reason: 'outOfStock' });
   // a gift above the score tier is never given (tampered pick)
   assert.deepStrictEqual(L.resolveReward(1, { ...b, stock: FULL, giftKey: 'full' }).tier, 1);
   // no pick: picks now

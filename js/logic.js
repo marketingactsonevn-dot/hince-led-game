@@ -273,17 +273,16 @@
     var s = clamp(Math.round(100 * raw / max), 0, 100);
     return (s === 100 && raw < max) ? 99 : s;
   }
-  // th = {mid, high} (Control Center, default 70 / 90): 1 = Hair Tie / Heart Mirror, 2 = Nu Blur Tint Mini, 3 = Nu Blur Tint
+  // th = {mid, high} (Control Center, default 70 / 90): 1 = Heart Mirror, 2 = Nu Blur Tint Mini, 3 = Nu Blur Tint
   function tierFor100(s, th) {
     if (s >= th.high) return 3;
     if (s >= th.mid) return 2;
     return 1;
   }
-  var GIFT_KEYS = ['hairTie', 'mirror', 'mini', 'full'];
-  var GIFT_TIER = { hairTie: 1, mirror: 1, mini: 2, full: 3 };
+  var GIFT_KEYS = ['mirror', 'mini', 'full']; // v2.8.5: Hair Tie dropped (owner 25/11), tier 1 = Heart Mirror only
+  var GIFT_TIER = { mirror: 1, mini: 2, full: 3 };
   function left(stock, k) { return Math.max(0, (stock && stock[k]) | 0); }
-  // gift for a tier from the event stock {hairTie, mirror, mini, full}: full → mini → Hair Tie / Mirror; never above the tier.
-  // Tier 1: Hair Tie or Mirror at random, weighted by what is left (both run out together). r = rng() → [0, 1).
+  // gift for a tier from the event stock {mirror, mini, full}: full → mini → Mirror; never above the tier.
   // Returns {tier, giftKey, reason}: reason '' | 'downgraded' (a lower tier than earned) | 'outOfStock' (tier 0, nothing left)
   function pickGift(tier, stock, r) {
     tier = clamp(tier | 0, 1, 3);
@@ -291,10 +290,7 @@
       var key = '';
       if (t === 3 && left(stock, 'full')) key = 'full';
       else if (t === 2 && left(stock, 'mini')) key = 'mini';
-      else if (t === 1) {
-        var h = left(stock, 'hairTie'), m = left(stock, 'mirror');
-        if (h + m) key = (r || Math.random)() * (h + m) < h ? 'hairTie' : 'mirror';
-      }
+      else if (t === 1 && left(stock, 'mirror')) key = 'mirror';
       if (key) return { tier: t, giftKey: key, reason: t < tier ? 'downgraded' : '' };
     }
     return { tier: 0, giftKey: '', reason: 'outOfStock' };
@@ -303,7 +299,7 @@
   // At SUBMIT: duplicate rule, then the gift picked on RESULT (opts.giftKey) if it is still in stock; else a fresh pick from
   // its tier down (stock changed meanwhile). Returns {tier, giftKey, reason}; reason '' | 'duplicate' | 'outOfStock' | 'downgraded'
   function resolveReward(tierByScore, opts) {
-    // opts: {phone, records, rule:'perEvent'|'perDay'|'none', today, stock:{hairTie,mirror,mini,full}, giftKey, rng}
+    // opts: {phone, records, rule:'perEvent'|'perDay'|'none', today, stock:{mirror,mini,full}, giftKey, rng}
     tierByScore = clamp(tierByScore | 0, 1, 3);
     if (opts.rule !== 'none') {
       var dup = (opts.records || []).some(function (r) {

@@ -11,9 +11,9 @@
   var V26 = ['paper/paper.jpg', 'paper/receipt.jpg', 'paper/tape.svg', 'paper/clip.svg', 'paper/arrow.svg',
     'stickers/p_heart.svg', 'stickers/p_lips.svg', 'stickers/p_sparkle.svg', 'stickers/p_bow.svg', 'stickers/p_gift.svg', 'stickers/p_crown.svg', 'stickers/p_star.svg',
     'tap/cap_pad.png', 'claw/claw_carriage.png', 'claw/claw_head_open.png', 'claw/claw_head_closed.png', 'photos/thanks_nb.jpg', 'photos/thanks_rb.jpg'];
-  // v2.7 rose theme + gift photos (assets/v27/): GIFTS key = Logic.GIFT_KEYS (hairTie | mirror | mini | full)
+  // v2.7 rose theme + gift photos (assets/v27/): GIFTS key = Logic.GIFT_KEYS (mirror | mini | full)
   var V27 = ['bg/bg_rose_paper.jpg'];
-  var GIFT_IMG = { hairTie: 'hair_tie', mirror: 'mirror', mini: 'nu_blur_mini', full: 'nu_blur_full' };
+  var GIFT_IMG = { mirror: 'mirror', mini: 'nu_blur_mini', full: 'nu_blur_full' };
   var WEBP = false; // gift photos: .webp (alpha) where the browser encodes/decodes it, else the palette .png
   try { WEBP = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') === 0; } catch (e) { }
 
