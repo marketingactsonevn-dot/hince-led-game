@@ -36,7 +36,8 @@
   KISS.levels = {
     easy: { activeMs: 40000, plan: ['FF', 'FF', 'FF', 'FF', 'FF', 'NF', 'NF', 'NF', 'NF', 'NF'] },
     normal: { activeMs: KISS.activeMs, plan: KISS.plan },
-    hard: { activeMs: 24000, plan: ['FF', 'FF', 'NF', 'NF', 'NF', 'NN', 'NN', 'NN', 'NN', 'NN'] }
+    // v2.8.3 hard (owner 25/11): the clock never pauses (animations count too) and one wrong pick loses the lip (0 points, next lip)
+    hard: { activeMs: 30000, continuous: true, oneTry: true, plan: ['FF', 'FF', 'NF', 'NF', 'NF', 'NN', 'NN', 'NN', 'NN', 'NN'] }
   };
   var SHADES = ['01_near', '02_dear', '03_nu_allure', '04_figray', '05_hug', '06_nu_rose', '07_heart', '08_wild', '09_cold', '10_leather'];
   // CIE76 deltaE between the lip photos, from assets/_pipeline/lips_photo_colors.json (rows/cols in SHADES order)
@@ -80,6 +81,8 @@
     this.seed = seed;
     this.difficulty = d;
     this.activeMs = KISS.levels[d].activeMs;
+    this.continuous = !!KISS.levels[d].continuous; // UI timer counts wall-clock time, not only touchable time
+    this.oneTry = !!KISS.levels[d].oneTry;
     this.plan = plan.slice();
     this.order = shuffle(SHADES.slice(), r);
     // 10_leather has no valid NN pair: a shade on an NN lip without one swaps with an earlier non-NN lip that has one
@@ -112,7 +115,7 @@
     if (key === target) {
       res = this.wrong ? 'second' : 'first';
       pts = this.wrong ? KISS.points.second : KISS.points.first + kissBonus(ms);
-    } else if (this.wrong) res = 'missed';
+    } else if (this.wrong || this.oneTry) res = 'missed';
     else { this.wrong = key; return { result: 'wrong', points: 0, lipDone: false, target: target }; }
     this.results[this.i] = res;
     this.score += pts;
@@ -206,7 +209,7 @@
     peekMs: 3000, activeMs: 45000,                       // "Vừa" (normal)
     points: { pair: 140, combo: 60, perSecondLeft: 10 }, // combo = 2nd+ match with no nomatch since the previous match; v2.6.1: 6 pairs, a perfect run = 140 + 5 x 200 = 1140 (8 pairs gave 1150)
     max: 1500,                                           // score capped at max; gift tiers = % of max
-    levels: { easy: { peekMs: 5000, activeMs: 60000 }, normal: { peekMs: 3000, activeMs: 45000 }, hard: { peekMs: 2000, activeMs: 35000 } }
+    levels: { easy: { peekMs: 5000, activeMs: 60000 }, normal: { peekMs: 3000, activeMs: 45000 }, hard: { peekMs: 1500, activeMs: 25000 } } // v2.8.3 hard: 35 → 25 s, peek 2 → 1.5 s (owner 25/11: still too easy)
   };
 
   // opts.difficulty 'easy' | 'normal' | 'hard' (unknown/none = normal) changes only peekMs/activeMs, never the deck or scoring

@@ -1,6 +1,6 @@
 /* hince LED Game — default settings. Most values can be changed in Admin (saved on the device). */
 window.DEFAULTS = {
-  appVersion: '2.8.2',
+  appVersion: '2.8.3',
   adminPin: '2026',
 
   // v2.7: every game shows a score 0–100 (Logic.score100); one pair of thresholds for all games (Control Center):
@@ -32,7 +32,7 @@ window.DEFAULTS = {
   kioskName: 'LED-1',                      // tên máy, lưu kèm mỗi lượt chơi (cột kiosk)
   sheetSync: true,                         // false = không gửi lên Sheet (vẫn lưu trên máy)
 
-  idleSec: { select: 30, howto: 40, result: 45, form: 90, reward: 90, thanks: 12, warn: 10 },
+  idleSec: { select: 15, howto: 40, result: 45, form: 90, reward: 90, thanks: 12, warn: 10 }, // v2.8.3: select = flyer over the attract video → video again after 15 s idle (owner 25/11)
   autoReloadHours: 4,
   promoVideo: 'assets/video/promo.mp4',    // video quảng cáo cho nhân viên (nút ▶ VIDEO góc trên-phải màn chờ); không có file thì ẩn nút
 

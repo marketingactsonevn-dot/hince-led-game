@@ -239,7 +239,7 @@ t('constants as TASK A2 (v2.6.1: 6 pairs, 3 x 4, 140 / 60) + difficulty levels',
   assert.strictEqual(M.peekMs, 3000); assert.strictEqual(M.activeMs, 45000);
   assert.deepStrictEqual(M.points, { pair: 140, combo: 60, perSecondLeft: 10 });
   assert.strictEqual(M.max, 1500);
-  assert.deepStrictEqual(M.levels, { easy: { peekMs: 5000, activeMs: 60000 }, normal: { peekMs: 3000, activeMs: 45000 }, hard: { peekMs: 2000, activeMs: 35000 } });
+  assert.deepStrictEqual(M.levels, { easy: { peekMs: 5000, activeMs: 60000 }, normal: { peekMs: 3000, activeMs: 45000 }, hard: { peekMs: 1500, activeMs: 25000 } });
 });
 t('new session: deck = 6 distinct shades x 2 in 12 slots, clean state', () => {
   for (let s = 1; s <= 200; s++) {
@@ -364,7 +364,7 @@ t('difficulty: no opts == normal (same deck, byte for byte); easy/hard only chan
   }
   const E = new L.Umpah1Session(3, { difficulty: 'easy' }), H = new L.Umpah1Session(3, { difficulty: 'hard' }), X = new L.Umpah1Session(3, { difficulty: 'nightmare' });
   assert.deepStrictEqual([E.difficulty, E.peekMs, E.activeMs], ['easy', 5000, 60000]);
-  assert.deepStrictEqual([H.difficulty, H.peekMs, H.activeMs], ['hard', 2000, 35000]);
+  assert.deepStrictEqual([H.difficulty, H.peekMs, H.activeMs], ['hard', 1500, 25000]);
   assert.deepStrictEqual([X.difficulty, X.peekMs, X.activeMs], ['normal', 3000, 45000]);   // unknown -> normal
   assert.strictEqual(H.max, 1500);
   pairsOf(H).forEach(q => { H.flip(q[0]); H.flip(q[1]); }); assert.strictEqual(H.score, 1140);
@@ -467,12 +467,12 @@ t('normal == no opts == today (v2.3-C-fix) byte for byte, 50 seeds x scripted ga
     .forEach(S => assert.strictEqual(S.difficulty, 'normal'));
 });
 t('values as TASK §D table (session fields); module constants unchanged', () => {
-  [['easy', 5000, 60000], ['normal', 3000, 45000], ['hard', 2000, 35000]].forEach(([d, p, a]) => {
+  [['easy', 5000, 60000], ['normal', 3000, 45000], ['hard', 1500, 25000]].forEach(([d, p, a]) => {
     const S = new L.Umpah1Session(1, { difficulty: d }); assert.deepStrictEqual([S.difficulty, S.peekMs, S.activeMs, S.max], [d, p, a, 1500]);
   });
   const FF = 'FF', NF = 'NF', NN = 'NN';
   const plans = { easy: [FF, FF, FF, FF, FF, NF, NF, NF, NF, NF], normal: [FF, FF, FF, NF, NF, NF, NF, NN, NN, NN], hard: [FF, FF, NF, NF, NF, NN, NN, NN, NN, NN] };
-  [['easy', 40000], ['normal', 30000], ['hard', 24000]].forEach(([d, ms]) => {
+  [['easy', 40000], ['normal', 30000], ['hard', 30000]].forEach(([d, ms]) => {
     const S = new L.Umpah2Session(1, { difficulty: d }); assert.deepStrictEqual([S.difficulty, S.activeMs, S.plan, S.max], [d, ms, plans[d], 1500]);
   });
   assert.strictEqual(K.activeMs, 30000); assert.deepStrictEqual(K.plan, plans.normal);
@@ -605,6 +605,18 @@ t('fuzz 300 seeds x 3 levels x 4 games: never throws, 0 <= score <= max', () => 
       assert(S.done(), 'taptap2 ' + tag);
     }
   });
+});
+
+t('v2.8.3 Um-Pah! 2 hard: continuous clock + one wrong pick loses the lip (0 points, next lip); easy/normal keep the second try', () => {
+  const H = new L.Umpah2Session(5, { difficulty: 'hard' }), N = new L.Umpah2Session(5, { difficulty: 'normal' });
+  assert.deepStrictEqual([H.continuous, H.oneTry, N.continuous, N.oneTry], [true, true, false, false]);
+  const lip = H.lip(), bad = lip.choices.find(k => k !== lip.target);
+  assert.deepStrictEqual(H.pick(bad, 500), { result: 'missed', points: 0, lipDone: true, target: lip.target });
+  assert.strictEqual(H.pick(lip.target, 600), null); // already resolved
+  H.next(); assert.strictEqual(H.i, 1); assert.strictEqual(H.score, 0);
+  const nl = N.lip(), nb = nl.choices.find(k => k !== nl.target);
+  assert.strictEqual(N.pick(nb, 500).result, 'wrong');
+  assert.strictEqual(N.pick(nl.target, 900).result, 'second');
 });
 
 console.log(`\n${passed} tests passed` + (process.exitCode ? ' — SOME FAILED' : ''));

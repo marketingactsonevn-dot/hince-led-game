@@ -60,7 +60,7 @@
   var GK = ['hairTie', 'mirror', 'mini', 'full'];
 
   var Store = {
-    settings: function () { var o = deepMerge(base(), migrate(read(K.settings, {}))); o.appVersion = window.DEFAULTS.appVersion; return o; }, // version follows the code, never a stale saved value
+    settings: function () { var o = deepMerge(base(), migrate(read(K.settings, {}))); o.appVersion = window.DEFAULTS.appVersion; o.idleSec = deepMerge(window.DEFAULTS.idleSec, {}); return o; }, // version + idle times follow the code (not editable in Control Center, but saved with the whole object)
     saveSettings: function (s) {
       // persist the whole object, except LOCAL_KEYS still equal to config.local.js/defaults (so a later config.local.js edit applies)
       var b = base(), o = {};

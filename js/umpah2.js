@@ -1,6 +1,6 @@
 /* Um-Pah! 2 (v2.2) — a real Nu Blur lip photo; drag (or tap) the matching tube up onto the lips. Logic: Logic2.Umpah2Session.
    Tubes = .u2-tube wrappers (canvas coords) moved only by transform: pointer drag + Web Animations for every sequence.
-   #s-umpah2[data-st] = ready (tubes touchable, S.activeMs timer runs: Dễ 40 / Vừa 30 / Khó 24 s) | anim (sequence: input ignored, timer paused) | over | off.
+   #s-umpah2[data-st] = ready (tubes touchable, S.activeMs timer runs: Dễ 40 / Vừa 30 / Khó 30 s wall clock) | anim (sequence: input ignored, timer paused except Khó) | over | off.
    Lip photos are the colour reference: opacity/transform only, never a filter. */
 (function () {
   'use strict';
@@ -14,7 +14,7 @@
   var LR = 8, LS = 1.06, LA = LR * Math.PI / 180;      // lifted tube: tilt 8° + scale 1.06 (mockup ?s=kiss)
   var el = {}, scr = null, stage = null, S = null, onEnd = null, state = 'off', raf = 0;
   var tubes = [], peds = [], prog = [], phs = [], seg = [], front = 0, puff = [], timers = [], anims = [];
-  var used = 0, lipUsed = 0, readyAt = 0, drag = null, shownSec = -1, shownSeg = -1;
+  var used = 0, lipUsed = 0, readyAt = 0, startAt = 0, drag = null, shownSec = -1, shownSeg = -1;
 
   function $(id) { return document.getElementById(id); }
   function mmss(ms) { var s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + (s % 60); } // v2.6 HUD 0:31
@@ -87,7 +87,7 @@
 
   function start(session, cbEnd) {
     reset();
-    S = session; onEnd = cbEnd; used = 0; paintTime(S.activeMs); // the session's time (difficulty: Dễ 40 s / Vừa 30 s / Khó 24 s)
+    S = session; onEnd = cbEnd; used = 0; startAt = performance.now(); paintTime(S.activeMs); // the session's time (difficulty: Dễ 40 s / Vừa 30 s / Khó 30 s, never paused)
     showLip(true);
     cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
   }
@@ -111,7 +111,10 @@
   }
 
   // ---------- timer: S.activeMs of touchable time (runs only in 'ready') ----------
-  function left(now) { return S.activeMs - used - (state === 'ready' ? now - readyAt : 0); }
+  function left(now) {
+    if (S.continuous) return S.activeMs - (now - startAt); // v2.8.3 hard: wall clock, animations count too
+    return S.activeMs - used - (state === 'ready' ? now - readyAt : 0);
+  }
   function bank(now) { if (state === 'ready') { used += now - readyAt; lipUsed += now - readyAt; } } // leaving 'ready'
   function paintTime(ms) { // DOM writes only on change
     var s = Math.max(0, Math.ceil(ms / 1000)), n = Math.max(0, Math.ceil(seg.length * ms / S.activeMs));
@@ -120,9 +123,9 @@
   }
   function frame(now) {
     raf = requestAnimationFrame(frame);
-    if (state !== 'ready') return;
+    if (state !== 'ready' && !(S.continuous && state === 'anim')) return;
     var ms = left(Math.max(now, readyAt)); paintTime(ms);
-    if (ms <= 0) timeUp(now);
+    if (ms <= 0 && state === 'ready') timeUp(now); // continuous: time running out mid-animation ends the game when it next becomes touchable
   }
   function timeUp(now) {
     bank(now); setState('over'); paintTime(0);
