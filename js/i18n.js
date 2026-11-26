@@ -34,7 +34,7 @@
     'idle.q': 'Bạn còn ở đây không?',
     // v2.7 gift reveal, 3 gift tiers, event stock
     'result.win': 'TRÚNG QUÀ!', 'result.tickMid': '{n}\nMINI', 'result.tickHigh': '{n}\nFULL-SIZE', 'result.askStaff': 'Vui lòng liên hệ nhân viên',
-    'result.downgrade': 'Quà mức cao đã hết – bạn nhận món quà này nhé', 'gift.shadeRandom': '*Màu son ngẫu nhiên', 'gift.shadeOf': '*Màu ngẫu nhiên: {s}', 'gift.shade': 'Màu: {s}',
+    'result.downgrade': 'Quà mức cao đã hết – bạn nhận món quà này nhé', 'gift.shadeRandom': '*Màu son ngẫu nhiên', 'gift.shadeOf': '*1 cây · màu ngẫu nhiên', 'gift.shade': 'Màu: {s}',
     'reward.row.gift': 'QUÀ CỦA BẠN', 'form.eyebrow': 'QUÀ · {gift}',
     'cc.stockLeft': 'còn', 'cc.given': 'đã phát: hôm nay {d} · tổng {e}', 'cc.giftLbl.mirror': 'Heart Mirror',
     'cc.giftLbl.mini': 'Raw Glow Mini', 'cc.giftLbl.full': 'Nu Blur Tint', 'cc.stockHead': 'KHO QUÀ CẢ SỰ KIỆN · KHÔNG TỰ NẠP LẠI',
@@ -111,7 +111,7 @@
     'thanks.back': 'Back to start in {s}s', 'thanks.home': 'BACK TO START',
     'idle.q': 'Still there?',
     'result.win': 'YOU WIN!', 'result.tickMid': '{n}\nMINI', 'result.tickHigh': '{n}\nFULL-SIZE', 'result.askStaff': 'Please ask our staff',
-    'result.downgrade': 'The higher gift is out of stock, so this one is yours', 'gift.shadeRandom': '*Shade is random', 'gift.shadeOf': '*Random shade: {s}', 'gift.shade': 'Shade: {s}',
+    'result.downgrade': 'The higher gift is out of stock, so this one is yours', 'gift.shadeRandom': '*Shade is random', 'gift.shadeOf': '*1 tint · random shade', 'gift.shade': 'Shade: {s}',
     'reward.row.gift': 'YOUR GIFT', 'form.eyebrow': 'GIFT · {gift}',
     'cc.stockLeft': 'left', 'cc.given': 'given: today {d} · total {e}', 'cc.giftLbl.mirror': 'Heart Mirror',
     'cc.giftLbl.mini': 'Raw Glow Mini', 'cc.giftLbl.full': 'Nu Blur Tint', 'cc.stockHead': 'EVENT GIFT STOCK · NO DAILY REFILL',

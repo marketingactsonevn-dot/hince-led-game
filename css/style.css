@@ -555,6 +555,10 @@ input, textarea { -webkit-user-select: text; user-select: text; touch-action: ma
 #s-result .rg-ph { position: relative; height: 360px; border-radius: 3px; overflow: hidden; background: radial-gradient(ellipse at 50% 42%, #FFFBF9 0%, #F8E9E6 62%, #EFD9D6 100%); }
 #s-result .rg-ph img { position: absolute; left: 6%; top: 6%; width: 88%; height: 88%; object-fit: contain; filter: drop-shadow(0 16px 14px rgba(74,47,51,.22)); }
 #s-result.rev .rg-ph img { animation: rgPop .56s cubic-bezier(.3,1.5,.5,1) .38s both; }
+/* v2.8.7 Mini shade swap: a short soft flash over the photo each time the shade changes */
+#s-result .rg-ph::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(ellipse at 50% 45%, rgba(255,255,255,.85) 0%, rgba(255,255,255,0) 70%); }
+#s-result .rg-ph.blink::after { animation: rgBlink .32s ease-out; }
+@keyframes rgBlink { 0% { opacity: .9; } 100% { opacity: 0; } }
 @keyframes rgPop { 0% { opacity: 0; transform: scale(.6); } 55% { opacity: 1; transform: scale(1.06); } 100% { opacity: 1; transform: scale(1); } }
 #s-result .rg-shine { position: absolute; top: -20%; left: 0; width: 38%; height: 140%; opacity: 0; transform: translateX(-160%) skewX(-18deg);
   background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.8) 50%, rgba(255,255,255,0) 100%); }

@@ -65,8 +65,21 @@
   function giftName(k) { var s = App.settings, e = en() && s.giftsEn && s.giftsEn[k]; return e || (s.gifts && s.gifts[k]) || window.DEFAULTS.gifts[k] || ''; }
   function lipGift(k) { return k === 'full'; } // Nu Blur Tint: the shade is random (note under the name)
   // v2.8.7 Raw Glow Gel Tint Mini: the result card lists the 3 shades; the receipt names the one picked at random
-  function giftNote(k) { return lipGift(k) ? T('gift.shadeRandom') : k === 'mini' ? T('gift.shadeOf', { s: window.DEFAULTS.miniShades.map(function (x) { return x.split(' ')[0]; }).join(' · ') }) : ''; }
+  function giftNote(k) { return lipGift(k) ? T('gift.shadeRandom') : k === 'mini' ? T('gift.shadeOf') : ''; } // the photo flashes through the shades
   function pickShade(k) { var a = window.DEFAULTS.miniShades; return k === 'mini' ? a[Math.floor(Math.random() * a.length)] : ''; }
+  // v2.8.7 result card for the Mini: one tube that flashes through the 3 shades (R002 → R006 → R015 …) until the screen changes
+  var cyc = 0;
+  function cycleShades(k) {
+    clearInterval(cyc); var ph = document.querySelector('#s-result .rg-ph'); ph.classList.remove('blink');
+    if (k !== 'mini') return;
+    var a = window.DEFAULTS.miniShades, i = 0;
+    $('rg-img').src = ASSETS.gift(k, a[0]);
+    cyc = setInterval(function () {
+      if (App.screen !== 'result') { clearInterval(cyc); return; }
+      i = (i + 1) % a.length; $('rg-img').src = ASSETS.gift(k, a[i]);
+      ph.classList.remove('blink'); void ph.offsetWidth; ph.classList.add('blink');
+    }, 700);
+  }
   function shadeName(k, sh) { return giftName(k) + (sh ? ' · ' + sh : ''); }
   // phone: VN format exactly as before, or international '+' followed by 8–15 digits; duplicates compare digits only with +84 → 0
   function validPhoneAny(p) { return Logic.validPhone(p) || /^\+\d{8,15}$/.test(p); }
@@ -306,6 +319,7 @@
     // gift polaroid (filled now, revealed when the count lands)
     if (k) {
       $('rg-img').src = ASSETS.gift(k);
+      cycleShades(k);
       $('rg-name').textContent = giftName(k);
       $('rg-note').textContent = giftNote(k);
       $('rg-stamp').textContent = T('result.win');
