@@ -347,7 +347,18 @@
     return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
   }
 
+  // v2.8.11 shared stock: the Sheet's "Remaining" (every kiosk) minus this kiosk's gifts that are not on the Sheet yet (ids in the send queue)
+  function sharedStock(remote, records, queueIds) {
+    var q = {}, out = {};
+    (queueIds || []).forEach(function (id) { q[id] = 1; });
+    GIFT_KEYS.forEach(function (k) { out[k] = remote && remote[k] != null ? +remote[k] | 0 : null; });
+    (records || []).forEach(function (r) { if (q[r.id] && r.tier > 0 && !r.testMode && out[r.giftKey] != null) out[r.giftKey]--; });
+    GIFT_KEYS.forEach(function (k) { if (out[k] == null) delete out[k]; else out[k] = Math.max(0, out[k]); });
+    return out;
+  }
+
   var api = {
+    sharedStock: sharedStock,
     rng: rng, clamp: clamp, normDeg: normDeg,
     UMPAH: UMPAH, umpahRound: umpahRound, umpahMarker: umpahMarker, umpahZoneCenter: umpahZoneCenter,
     umpahJudge: umpahJudge, umpahPoints: umpahPoints, umpahMax: umpahMax, UmpahSession: UmpahSession,

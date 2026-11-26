@@ -1,5 +1,5 @@
 /* Offline cache for hosted mode (https). Bump VERSION when files change. */
-var VERSION = 'hince-led-v2.8.10';
+var VERSION = 'hince-led-v2.8.11';
 var FILES = ['./',
   './index.html',
   './manifest.webmanifest',
@@ -142,7 +142,7 @@ self.addEventListener('install', function (e) {
     function fresh(u) { return new Request(u, { cache: 'reload' }); }
     return c.addAll(FILES.map(fresh)).then(function () {
       // optional: per-kiosk config.local.js, videos + audio overrides (keys = audio.js BGM_KEYS + SFX_KEYS); cache them if present
-      var opt = ['./config.local.js', './assets/video/attract.mp4', './assets/video/promo.mp4'];
+      var opt = ['./config.local.js', './assets/video/attract.mp4', './assets/video/standby_tv.mp4', './assets/video/promo.mp4'];
       ['bgm_lobby', 'bgm_umpah', 'bgm_taptap', 'bgm_umpah2', 'bgm_taptap2', 'ui_tap', 'start', 'select', 'count', 'go', 'um_hold', 'pah', 'tube_fly', 'kiss_color',
         'perfect', 'good', 'miss', 'tap_lane_0', 'tap_lane_1', 'tap_lane_2', 'tap_lane_3', 'tap_gold', 'tap_empty', 'tap_miss', 'combo_up',
         'count_tick', 'win_t1', 'win_t2', 'no_tier', 'key', 'submit', 'staff_ok', 'kiss_pick', 'kiss_wrong', 'kiss_this', 'time_up',

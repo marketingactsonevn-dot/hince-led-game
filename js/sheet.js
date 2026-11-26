@@ -8,6 +8,7 @@
  *   sendNow(cb)   send the queue now (GỬI NGAY); cb(status()) when this round is over
  *   status()      { configured, mode, waiting, sentToday, sentTotal, lastOkAt, lastError, ok, text }
  *   ping(cb)      KIỂM TRA: cb({ ok:true, rows, text }) or cb({ ok:false, text })
+ *   syncStock()   v2.8.11: local gift stock = Sheet Dashboard Remaining − own gifts still queued (also every 30 s)
  *   _setTimingForTest({ first, every, confirm, timeout, jsonp })  tests only (ms); also unlocks a http://127.0.0.1|localhost mock URL
  */
 (function () {
@@ -140,8 +141,20 @@
       }, T.confirm);
     });
   }
+  // v2.8.11: shared gift stock across kiosks. Needs Code.gs action=stock (an older script answers a ping: ignored, local stock stays)
+  function syncStock() {
+    var c = conf(); if (!usable(c)) return;
+    jsonp(c, 'action=stock', function (j) {
+      try {
+        if (!j || !j.ok || !j.stock) return;
+        var st = Logic.sharedStock(j.stock, Store.records(), queue());
+        Object.keys(st).forEach(function (k) { Store.setGiftStock(k, st[k]); });
+        var s = stats(); s.stockAt = new Date().toISOString(); put(SK, s);
+      } catch (e) { log('stock ' + e.message); }
+    });
+  }
   function later(ms) { clearTimeout(soon); soon = setTimeout(function () { try { send(); } catch (e) { busy = false; } }, ms); }
-  function arm() { clearInterval(iv); iv = setInterval(function () { try { if (queue().length) send(); } catch (e) { } }, T.every); }
+  function arm() { clearInterval(iv); iv = setInterval(function () { try { if (queue().length) send(); syncStock(); } catch (e) { } }, T.every); }
 
   var api = {
     enqueue: function (id) {
@@ -185,6 +198,7 @@
         });
       } catch (e) { out({ ok: false, text: tr(E_NET) }); }
     },
+    syncStock: syncStock,
     _setTimingForTest: function (o) {
       allowMock = true;
       try { Object.keys(o || {}).forEach(function (k) { if (T[k] && o[k] >= 10) T[k] = o[k]; }); arm(); } catch (e) { }
@@ -194,6 +208,6 @@
 
   try {
     window.addEventListener('online', function () { try { send(); } catch (e) { busy = false; } });
-    arm(); later(T.first); // boot
+    arm(); later(T.first); setTimeout(syncStock, T.first + 1500); // boot
   } catch (e) { }
 })();

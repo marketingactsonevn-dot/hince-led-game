@@ -660,7 +660,7 @@
   // ---------------- boot ----------------
   function boot() {
     App.applySettings();
-    Sfx.probe(); // optional assets/audio/<key>.mp3|wav|ogg overrides
+    if (!/NetCast|Web0S/i.test(navigator.userAgent)) Sfx.probe(); // optional assets/audio/<key>.mp3|wav|ogg overrides; v2.8.11: LG webOS pauses the attract video while <audio> elements load (no files exist anyway)
     ASSETS.preload(function () { App.assetsReady = true; });
     try { ['400 40px Gelasio', 'italic 400 40px Gelasio', '700 40px Gelasio', 'italic 700 40px Gelasio', '500 40px "Be Vietnam Pro"', '600 40px "Be Vietnam Pro"', '600 40px "IBM Plex Mono"', '600 40px VNfix'].forEach(function (f) { document.fonts.load(f).catch(function () { }); }); } catch (e) { }
     fit(); window.addEventListener('resize', fit);
@@ -668,7 +668,8 @@
     var v = $('attract-video');
     v.addEventListener('canplay', function () { $('s-attract').classList.add('has-video'); if (App.screen === 'attract' && !$('s-attract').classList.contains('peek')) { var p = v.play(); if (p && p.catch) p.catch(function () { }); } }, { once: true });
     v.addEventListener('error', function () { $('s-attract').classList.remove('has-video'); });
-    v.src = 'assets/video/attract.mp4';
+    var tv = /^TV/i.test(App.settings.kioskName || ''); document.body.classList.toggle('kiosk-tv', tv);
+    v.src = tv ? window.DEFAULTS.tvVideo : 'assets/video/attract.mp4'; // v2.8.11: a TV… kiosk shows its own product video
     var pv = $('promo-video'); // optional promo: the staff button appears only once the file loads
     pv.addEventListener('loadedmetadata', function () { App.promoReady = true; $('promo-btn').classList.add('on'); }, { once: true });
     pv.addEventListener('error', function () { App.promoReady = false; $('promo-btn').classList.remove('on'); if (App.screen === 'promo') App.home(); }); // metadata ok but data truncated/undecodable

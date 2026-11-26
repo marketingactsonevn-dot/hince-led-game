@@ -165,6 +165,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   filter: drop-shadow(3px -3px 4px rgba(74,47,51,.18)); }
 #s-attract .at-tw:active .tab { transform: translateY(6px) scale(.985); }
 #s-attract .at-note { left: 190px; top: 1712px; width: 700px; height: 116px; transform: rotate(1.5deg); display: flex; align-items: center; justify-content: center; gap: 16px; z-index: 6; }
+body.kiosk-tv #s-attract.has-video:not(.peek) .at-note { top: 150px; } /* v2.8.11: TV product video keeps its text in the lower half */
 #s-attract .at-note img { width: 64px; transform: rotate(180deg) scaleX(-1); }
 #s-attract .at-note span { font-size: 50px; font-style: italic; white-space: nowrap; color: var(--ink); }
 /* staff corners: ⚙ gear (84 circle), VI | EN chip, ▶ VIDEO paper chip — cream on the rose paper, never start a game */

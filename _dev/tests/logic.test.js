@@ -237,3 +237,12 @@ t('csv: BOM, escaping, phone as text', () => {
 });
 
 console.log(`\n${passed} tests passed` + (process.exitCode ? ' — SOME FAILED' : ''));
+
+console.log('SHARED STOCK (v2.8.11)');
+t('sheet remaining minus own queued gifts, never below 0', () => {
+  const recs = [{ id: 'a', tier: 2, giftKey: 'mini' }, { id: 'b', tier: 1, giftKey: 'mirror' }, { id: 'c', tier: 2, giftKey: 'mini' },
+    { id: 'd', tier: 0, giftKey: '' }, { id: 'e', tier: 3, giftKey: 'full', testMode: true }];
+  assert.deepStrictEqual(L.sharedStock({ mirror: 499, mini: 80, full: 1 }, recs, ['a', 'c', 'd', 'e']), { mirror: 499, mini: 78, full: 1 });
+  assert.deepStrictEqual(L.sharedStock({ mirror: 0, mini: 1, full: 0 }, recs, ['a', 'b', 'c']), { mirror: 0, mini: 0, full: 0 });
+  assert.deepStrictEqual(L.sharedStock({ mini: 5 }, recs, []), { mini: 5 }); // a missing key leaves the local count alone
+});
