@@ -273,7 +273,7 @@
     var s = clamp(Math.round(100 * raw / max), 0, 100);
     return (s === 100 && raw < max) ? 99 : s;
   }
-  // th = {mid, high} (Control Center, default 70 / 90): 1 = Heart Mirror, 2 = Nu Blur Tint Mini, 3 = Nu Blur Tint
+  // th = {mid, high} (Control Center, default 70 / 90): 1 = Heart Mirror, 2 = Raw Glow Gel Tint Mini (v2.8.7), 3 = Nu Blur Tint
   function tierFor100(s, th) {
     if (s >= th.high) return 3;
     if (s >= th.mid) return 2;

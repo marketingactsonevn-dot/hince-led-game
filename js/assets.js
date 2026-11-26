@@ -13,7 +13,7 @@
     'tap/cap_pad.png', 'claw/claw_carriage.png', 'claw/claw_head_open.png', 'claw/claw_head_closed.png', 'photos/thanks_nb.jpg', 'photos/thanks_rb.jpg'];
   // v2.7 rose theme + gift photos (assets/v27/): GIFTS key = Logic.GIFT_KEYS (mirror | mini | full)
   var V27 = ['bg/bg_rose_paper.jpg'];
-  var GIFT_IMG = { mirror: 'mirror', mini: 'nu_blur_mini', full: 'nu_blur_full' };
+  var GIFT_IMG = { mirror: 'mirror', mini: 'raw_glow_mini', full: 'nu_blur_full' }; // v2.8.7: mini = Raw Glow Gel Tint Mini (3 shades)
   var WEBP = false; // gift photos: .webp (alpha) where the browser encodes/decodes it, else the palette .png
   try { WEBP = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') === 0; } catch (e) { }
 
@@ -21,7 +21,8 @@
   function rb(name) { return 'assets/img/products/radiance_balm/' + name + '.png'; }
   function v26(f) { return 'assets/v26/' + f; }
   function v27(f) { return 'assets/v27/' + f; }
-  function gift(k) { return GIFT_IMG[k] ? v27('gifts/' + GIFT_IMG[k] + (WEBP ? '.webp' : '.png')) : ''; }
+  // shade (e.g. 'R006 Raw Grape') → that tube's photo raw_glow_mini_r006, else the gift's own photo
+  function gift(k, shade) { var f = GIFT_IMG[k]; if (!f) return ''; if (shade) f += '_' + shade.split(' ')[0].toLowerCase(); return v27('gifts/' + f + (WEBP ? '.webp' : '.png')); }
   // v2.6: square bullet close-up of Radiance Balm shade RB[i] name (168x168, bullet centred): target swatch + trays
   function head(name) { return v26('heads/head_' + name + '.png'); }
   // official Nu Blur lip swatch photo of shade NB[i] (i 0-based), 1200x960 — colour reference, never filtered
@@ -35,6 +36,7 @@
     for (i = 0; i < V26.length; i++) out.push(v26(V26[i]));
     for (i = 0; i < V27.length; i++) out.push(v27(V27[i]));
     for (var k in GIFT_IMG) out.push(gift(k));
+    window.DEFAULTS.miniShades.forEach(function (sh) { out.push(gift('mini', sh)); });
     for (i = 0; i < RB.length; i++) out.push(head(RB[i]));
     out.push('assets/img/logo.png');
     return out;

@@ -56,7 +56,14 @@
     if (!saved.lang271) { delete saved.defaultLang; saved.lang271 = true; ch = true; }
     // v2.8.6: default language back to VI; a saved 'en' is the frozen old default, drop it once (an EN chosen after this is kept)
     if (!saved.lang286) { delete saved.defaultLang; saved.lang286 = true; ch = true; }
-    if (ch) { write(K.settings, saved); log('settings migrated (thresholds 70/90, gift names, default language VI v2.8.6)'); }
+    // v2.8.7: mini = Raw Glow Gel Tint Mini (owner 26/11): its stock restarts at DEFAULTS (80) and a saved Nu Blur Mini name goes, once
+    if (!saved.gift287) {
+      var g = read(K.gifts, null);
+      if (g && typeof g === 'object') { g.mini = window.DEFAULTS.giftStock.mini; write(K.gifts, g); }
+      ['gifts', 'giftsEn'].forEach(function (n) { if (saved[n] && /nu blur/i.test(saved[n].mini || '')) delete saved[n].mini; });
+      saved.gift287 = true; ch = true;
+    }
+    if (ch) { write(K.settings, saved); log('settings migrated (thresholds 70/90, gift names, default language VI v2.8.6, Raw Glow Mini v2.8.7)'); }
     return saved;
   }
   var GK = ['mirror', 'mini', 'full'];

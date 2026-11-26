@@ -63,7 +63,11 @@
   // v2.4: settings with an English twin (<key>En); an empty EN value falls back to the Vietnamese one
   function txt(k) { var s = App.settings; return (en() && s[k + 'En']) || s[k]; }
   function giftName(k) { var s = App.settings, e = en() && s.giftsEn && s.giftsEn[k]; return e || (s.gifts && s.gifts[k]) || window.DEFAULTS.gifts[k] || ''; }
-  function lipGift(k) { return k === 'mini' || k === 'full'; } // Nu Blur Tint gifts: the shade is random (note under the name)
+  function lipGift(k) { return k === 'full'; } // Nu Blur Tint: the shade is random (note under the name)
+  // v2.8.7 Raw Glow Gel Tint Mini: the result card lists the 3 shades; the receipt names the one picked at random
+  function giftNote(k) { return lipGift(k) ? T('gift.shadeRandom') : k === 'mini' ? T('gift.shadeOf', { s: window.DEFAULTS.miniShades.map(function (x) { return x.split(' ')[0]; }).join(' · ') }) : ''; }
+  function pickShade(k) { var a = window.DEFAULTS.miniShades; return k === 'mini' ? a[Math.floor(Math.random() * a.length)] : ''; }
+  function shadeName(k, sh) { return giftName(k) + (sh ? ' · ' + sh : ''); }
   // phone: VN format exactly as before, or international '+' followed by 8–15 digits; duplicates compare digits only with +84 → 0
   function validPhoneAny(p) { return Logic.validPhone(p) || /^\+\d{8,15}$/.test(p); }
   function normPhone(p) { p = String(p || ''); var d = p.replace(/\D/g, ''); return p.slice(0, 3) === '+84' ? '0' + d.slice(2).replace(/^0+/, '') : d; } // +840901… = 0901…
@@ -303,7 +307,7 @@
     if (k) {
       $('rg-img').src = ASSETS.gift(k);
       $('rg-name').textContent = giftName(k);
-      $('rg-note').textContent = lipGift(k) ? T('gift.shadeRandom') : '';
+      $('rg-note').textContent = giftNote(k);
       $('rg-stamp').textContent = T('result.win');
       $('res-down').textContent = p.reason === 'downgraded' ? T('result.downgrade') : '';
       confetti(CONF[lvl] || 12);
@@ -412,11 +416,12 @@
     // v2.4: duplicate check on a normalised number (digits only, +84 → 0) so +84 90… and 090… are the same customer
     var norm = records.map(function (x) { return { testMode: x.testMode, phone: normPhone(x.phone), tier: x.tier, date: x.date }; });
     var res = Logic.resolveReward(r.tierByScore, { phone: normPhone(f.phone), records: norm, rule: s.duplicateRule, today: today, stock: pickStock(), giftKey: (r.pick || {}).giftKey });
+    var sh = res.tier ? pickShade(res.giftKey) : '';
     var rec = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
       createdAt: isoLocal(new Date()), date: today, game: r.game, score: r.score, maxScore: r.max, scorePct: r.s100, // v2.7: scorePct = score 0–100 (integer)
       tierByScore: r.tierByScore, tier: res.tier, giftKey: res.giftKey, reason: res.reason, // tier 1 Mirror · 2 Mini · 3 full-size
-      giftName: res.tier ? giftName(res.giftKey) : '', rewardCode: res.tier ? Store.nextCode(GAME[r.game].prefix) : '',
+      giftShade: sh, giftName: res.tier ? shadeName(res.giftKey, sh) : '', rewardCode: res.tier ? Store.nextCode(GAME[r.game].prefix) : '',
       name: name, phone: f.phone, consentGift: true, consentMarketing: !!f.cm, consentTextVersion: en() ? 'v1-en' : 'v1',
       redeemed: false, redeemedAt: '', testMode: !!s.testMode, seed: r.seed, appVersion: s.appVersion,
       difficulty: r.difficulty || 'normal', kiosk: s.kioskName || '', // v2.3
@@ -443,9 +448,9 @@
     $('rw-r-game').textContent = G ? G.name.toUpperCase() : '';
     $('rw-r-score').textContent = (rec.scorePct != null ? Math.round(rec.scorePct) : Logic.score100(rec.score || 0, rec.maxScore || 0)) + ' / 100';
     $('rw-r-time').textContent = ts.length >= 16 ? ts.slice(8, 10) + '/' + ts.slice(5, 7) + '/' + ts.slice(0, 4) + ' · ' + ts.slice(11, 16) : '';
-    $('rw-gimg').src = k ? ASSETS.gift(k) : '';
-    $('rw-gname').textContent = t0 ? '' : rec.giftName || giftName(k);
-    $('rw-gnote').textContent = !t0 && lipGift(k) ? T('gift.shadeRandom') : '';
+    $('rw-gimg').src = k ? ASSETS.gift(k, rec.giftShade) : '';
+    $('rw-gname').textContent = t0 ? '' : rec.giftShade ? giftName(k) : rec.giftName || giftName(k); // the Sheet keeps name · shade, the receipt puts the shade on its own line
+    $('rw-gnote').textContent = t0 ? '' : rec.giftShade ? T('gift.shade', { s: rec.giftShade }) : lipGift(k) ? T('gift.shadeRandom') : '';
     $('rw-gift').textContent = t0 ? T(dup ? 'reward.done' : 'result.soldOut') : '';
     $('rw-code').textContent = rec.rewardCode;
     barcode($('rw-bc'), t0 ? '' : String(rec.rewardCode || ''));
@@ -677,7 +682,7 @@
     App.result = { game: App.game, score: s100 * 15, max: 1500, pct: s100, s100: s100, tierByScore: tier, pick: p, seed: 1, difficulty: 'normal' };
     showResult();
   }
-  function giftRec(rec, k) { rec.giftKey = k; rec.tier = Logic.GIFT_TIER[k]; rec.giftName = giftName(k); return rec; }
+  function giftRec(rec, k) { rec.giftKey = k; rec.tier = Logic.GIFT_TIER[k]; rec.giftShade = pickShade(k); rec.giftName = shadeName(k, rec.giftShade); return rec; }
   App.debug = { C128: C128, toHowto: toReady, toReady: toReady, toIntro: toIntro, startGame: startGame, toForm: toForm, submitForm: submitForm, show: show, endGame: endGame, toThanks: toThanks, toReward: toReward,
     showResultFor: showResultFor, giftRec: giftRec };
   boot();

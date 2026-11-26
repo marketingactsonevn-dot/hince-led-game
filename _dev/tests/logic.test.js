@@ -152,7 +152,7 @@ t('distribution (report)', () => {
 
 console.log('REWARD & DATA');
 // ---- v2.7: score 0–100, 3 tiers, event gift stock (TASK_v2_7 §2) ----
-const FULL = { mirror: 500, mini: 100, full: 50 };
+const FULL = { mirror: 500, mini: 80, full: 50 };
 const TH = { mid: 70, high: 90 };
 t('score100: 0–100, rounded, clamped, 100 only for a perfect game', () => {
   assert.strictEqual(L.score100(0, 1500), 0); assert.strictEqual(L.score100(1500, 1500), 100);
