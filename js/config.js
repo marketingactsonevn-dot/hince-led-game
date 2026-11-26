@@ -1,6 +1,6 @@
 /* hince LED Game — default settings. Most values can be changed in Admin (saved on the device). */
 window.DEFAULTS = {
-  appVersion: '2.8.8',
+  appVersion: '2.8.9',
   adminPin: '2026',
 
   // v2.7: every game shows a score 0–100 (Logic.score100); one pair of thresholds for all games (Control Center):

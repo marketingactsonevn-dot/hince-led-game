@@ -464,7 +464,7 @@
     $('rw-r-time').textContent = ts.length >= 16 ? ts.slice(8, 10) + '/' + ts.slice(5, 7) + '/' + ts.slice(0, 4) + ' · ' + ts.slice(11, 16) : '';
     $('rw-gimg').src = k ? ASSETS.gift(k, rec.giftShade) : '';
     $('rw-gname').textContent = t0 ? '' : rec.giftShade ? giftName(k) : rec.giftName || giftName(k); // the Sheet keeps name · shade, the receipt puts the shade on its own line
-    $('rw-gnote').textContent = t0 ? '' : rec.giftShade ? T('gift.shade', { s: rec.giftShade }) : lipGift(k) ? T('gift.shadeRandom') : '';
+    $('rw-gnote').textContent = t0 || rec.giftShade ? '' : lipGift(k) ? T('gift.shadeRandom') : ''; // v2.8.9 owner: no shade name on the receipt (photo + Sheet keep it)
     $('rw-gift').textContent = t0 ? T(dup ? 'reward.done' : 'result.soldOut') : '';
     $('rw-code').textContent = rec.rewardCode;
     barcode($('rw-bc'), t0 ? '' : String(rec.rewardCode || ''));
