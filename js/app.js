@@ -523,6 +523,12 @@
     if ($('o-admin').classList.contains('active')) return;
     if (App.screen === 'attract') { // v2.6: flyer shown over the attract video → back to the video after idleSec.select
       var a = $('s-attract');
+      if (a.classList.contains('has-video') && !a.classList.contains('peek')) { // v2.8.10: a video that never moves (LG webOS TV browser) → flyer only, never a black screen
+        var v = $('attract-video');
+        if (v.currentTime === App.vidT && !v.seeking) { if (++App.vidStuck >= 8) { a.classList.remove('has-video'); try { v.pause(); } catch (e) { } Store.log('attract video stuck -> flyer'); } }
+        else App.vidStuck = 0;
+        App.vidT = v.currentTime;
+      }
       if (a.classList.contains('peek') && a.classList.contains('has-video') && (performance.now() - App.lastAct) / 1000 > App.settings.idleSec.select) App.home(); // video again + default language
       return;
     }

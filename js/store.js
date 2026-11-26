@@ -115,7 +115,7 @@
       var today = Logic.localDate(), c = read(K.counter, {});
       if (c.date !== today) c = { date: today, n: 0 };
       c.n++; write(K.counter, c);
-      var n = String(c.n); while (n.length < 4) n = '0' + n;
+      var n = String(c.n + (/^TV/i.test(Store.settings().kioskName || '') ? 5000 : 0)); while (n.length < 4) n = '0' + n; // v2.8.10: a kiosk named TV… counts from 5001 (no clash with LED-1)
       return prefix + '-' + n;
     },
     logs: function () { return read(K.logs, []); },
