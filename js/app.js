@@ -660,6 +660,7 @@
   // ---------------- boot ----------------
   function boot() {
     App.applySettings();
+    if (/^TV/i.test(App.settings.kioskName || '')) { location.replace('tv.html'); return; } // v2.8.13: StanbyME (kiosk TV…) = video only, no game (owner 27/11)
     if (!/NetCast|Web0S/i.test(navigator.userAgent)) Sfx.probe(); // optional assets/audio/<key>.mp3|wav|ogg overrides; v2.8.11: LG webOS pauses the attract video while <audio> elements load (no files exist anyway)
     ASSETS.preload(function () { App.assetsReady = true; });
     try { ['400 40px Gelasio', 'italic 400 40px Gelasio', '700 40px Gelasio', 'italic 700 40px Gelasio', '500 40px "Be Vietnam Pro"', '600 40px "Be Vietnam Pro"', '600 40px "IBM Plex Mono"', '600 40px VNfix'].forEach(function (f) { document.fonts.load(f).catch(function () { }); }); } catch (e) { }

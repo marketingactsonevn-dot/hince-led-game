@@ -1,7 +1,8 @@
 /* Offline cache for hosted mode (https). Bump VERSION when files change. */
-var VERSION = 'hince-led-v2.8.12';
+var VERSION = 'hince-led-v2.8.13';
 var FILES = ['./',
   './index.html',
+  './tv.html',
   './manifest.webmanifest',
   './assets/img/icon-192.png',
   './assets/img/icon-512.png',

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>hince · StanbyME</title>
+<!-- v2.8.13: LG StanbyME = video only (owner 27/11). Kiosks named TV… are sent here from index.html. -->
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; cursor: none; }
+  video { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #000; }
+</style>
+</head>
+<body>
+<video id="v" src="assets/video/standby_tv.mp4" autoplay muted loop playsinline preload="auto"></video>
+<script>
+(function () {
+  var v = document.getElementById('v'), last = -1, still = 0;
+  function kick() { var p = v.play(); if (p && p.catch) p.catch(function () { }); }
+  function reload() { v.src = 'assets/video/standby_tv.mp4?r=' + Date.now(); v.load(); kick(); }
+  v.addEventListener('canplay', kick);
+  v.addEventListener('ended', function () { v.currentTime = 0; kick(); }); // loop fallback
+  v.addEventListener('error', function () { setTimeout(reload, 5000); });
+  // stuck video (webOS, network) → reload the file after ~10 s without progress
+  setInterval(function () {
+    if (v.currentTime === last) { if (++still >= 5) { still = 0; reload(); } } else { still = 0; last = v.currentTime; }
+  }, 2000);
+  if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) { try { navigator.serviceWorker.register('sw.js'); } catch (e) { } } // offline copy
+})();
+</script>
+</body>
+</html>
