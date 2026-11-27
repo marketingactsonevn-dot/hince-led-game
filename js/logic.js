@@ -140,7 +140,9 @@
   var TILES_LEVELS = {
     easy: { interval: 1.2, approach: 1.2, windows: 1.25 },
     normal: { interval: 1, approach: 1, windows: 1 },
-    hard: { interval: 0.88, approach: 0.88, windows: 0.85 }
+    // v2.8.14 (owner 27/11: too hard, real hard plays 0–23 / 100, matching ~100 ms touch lag on the standee in a simulation):
+    // hit windows x1.6 (perfect ±112 ms, good ±224 ms) and 100 = 55 % of the chart maximum (full combo x2 + every gold)
+    hard: { interval: 0.88, approach: 0.88, windows: 1.6, maxF: 0.55 }
   };
 
   function tilesPhase(t) {
@@ -196,7 +198,7 @@
     this.perfectMs = TILES.perfectMs * TILES_LEVELS[d].windows; // judging uses these per-session windows
     this.goodMs = TILES.goodMs * TILES_LEVELS[d].windows;
     this.notes = buildChart(seed, TILES_LEVELS[d]);
-    this.max = chartMax(this.notes);
+    this.max = Math.round(chartMax(this.notes) * (TILES_LEVELS[d].maxF || 1)); // v2.8.14 hard: score100 against 55 % of the chart max
     this.score = 0; this.combo = 0; this.maxCombo = 0;
     this.stats = { perfect: 0, good: 0, miss: 0, gold: 0, empty: 0 };
     this.lastTap = [-1e9, -1e9, -1e9, -1e9];

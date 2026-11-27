@@ -19,7 +19,7 @@
   function T(k, v) { return I18N.t(k, v); }
   function en() { return I18N.lang === 'en'; }
   // Tap-Tap! 1 max varies per chart (and per difficulty, v2.3 D): average of 40 fixed charts of that level
-  function tilesMaxAvg(d) { var sum = 0; for (var i = 1; i <= 40; i++) sum += Logic.chartMax(Logic.buildChart(i * 7919, Logic.TILES_LEVELS[d])); return Math.round(sum / 40); }
+  function tilesMaxAvg(d) { var sum = 0; for (var i = 1; i <= 40; i++) sum += Logic.chartMax(Logic.buildChart(i * 7919, Logic.TILES_LEVELS[d])) * (Logic.TILES_LEVELS[d].maxF || 1); return Math.round(sum / 40); } // v2.8.14: same max as the session
   function lvl(k) { return (App.settings.difficulty || {})[k] || 'normal'; } // v2.3 D: Control Center difficulty for game k
   var GAME = {
     // v2.3: Um-Pah! 1 = "Lật Cặp Môi" lip-photo memory game (umpah1.js, Logic2.Umpah1Session); the v2.2 ring game is in assets/_archive/
