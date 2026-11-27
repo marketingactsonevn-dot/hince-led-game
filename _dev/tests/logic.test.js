@@ -153,7 +153,7 @@ t('distribution (report)', () => {
 console.log('REWARD & DATA');
 // ---- v2.7: score 0–100, 3 tiers, event gift stock (TASK_v2_7 §2) ----
 const FULL = { mirror: 500, mini: 80, full: 50 };
-const TH = { mid: 70, high: 90 };
+const TH = { low: 70, mid: 80, high: 90 };
 t('score100: 0–100, rounded, clamped, 100 only for a perfect game', () => {
   assert.strictEqual(L.score100(0, 1500), 0); assert.strictEqual(L.score100(1500, 1500), 100);
   assert.strictEqual(L.score100(1499, 1500), 99); // rounds to 100 but is not perfect
@@ -165,9 +165,10 @@ t('score100: 0–100, rounded, clamped, 100 only for a perfect game', () => {
   assert.strictEqual(L.score100(L.umpahMax(), L.umpahMax()), 100);
   const S = new L.TilesSession(77); assert.strictEqual(L.score100(S.max, S.max), 100);
 });
-t('tierFor100: 0–69 → 1, 70–89 → 2, 90–100 → 3 (everyone gets a gift)', () => {
-  [0, 1, 50, 69].forEach(v => assert.strictEqual(L.tierFor100(v, TH), 1, v));
-  [70, 75, 89].forEach(v => assert.strictEqual(L.tierFor100(v, TH), 2, v));
+t('v2.8.14 tierFor100: 0–69 → 0 (no gift), 70–79 → 1, 80–89 → 2, 90–100 → 3', () => {
+  [0, 1, 50, 69].forEach(v => assert.strictEqual(L.tierFor100(v, TH), 0, v));
+  [70, 75, 79].forEach(v => assert.strictEqual(L.tierFor100(v, TH), 1, v));
+  [80, 85, 89].forEach(v => assert.strictEqual(L.tierFor100(v, TH), 2, v));
   [90, 95, 100].forEach(v => assert.strictEqual(L.tierFor100(v, TH), 3, v));
   assert.strictEqual(L.tierFor100(60, { mid: 60, high: 80 }), 2); assert.strictEqual(L.tierFor100(80, { mid: 60, high: 80 }), 3);
 });
@@ -192,6 +193,10 @@ t('pickGift: a hair tie count left in old stock is never given; all gone → out
   [1, 2, 3].forEach(t => assert.deepStrictEqual(L.pickGift(t, none, Math.random), { tier: 0, giftKey: '', reason: 'outOfStock' }));
   assert.strictEqual(L.pickGift(3, { mirror: 3 }, Math.random).giftKey, 'mirror');
   assert.strictEqual(L.pickGift(1, { mirror: -4 }, Math.random).reason, 'outOfStock');
+});
+t('v2.8.14 tier 0 = lowScore: no gift from pickGift or resolveReward, even with full stock (no duplicate check)', () => {
+  assert.deepStrictEqual(L.pickGift(0, FULL, Math.random), { tier: 0, giftKey: '', reason: 'lowScore' });
+  assert.deepStrictEqual(L.resolveReward(0, { phone: '0901234567', records: [], rule: 'perEvent', today: '2026-11-27', stock: FULL, giftKey: 'mirror', rng: Math.random }), { tier: 0, giftKey: '', reason: 'lowScore' });
 });
 t('resolveReward: keeps the gift picked on RESULT; re-picks only when it is gone', () => {
   const b = { phone: '0901234567', records: [], rule: 'perEvent', today: '2026-11-27', rng: () => 0.5 };

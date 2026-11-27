@@ -273,18 +273,22 @@
     var s = clamp(Math.round(100 * raw / max), 0, 100);
     return (s === 100 && raw < max) ? 99 : s;
   }
-  // th = {mid, high} (Control Center, default 70 / 90): 1 = Heart Mirror, 2 = Raw Glow Gel Tint Mini (v2.8.7), 3 = Nu Blur Tint
+  // th = {low, mid, high} (Control Center, default 70 / 80 / 90): 0 = no gift (voucher at check-in only, v2.8.14 owner 27/11),
+  // 1 = Heart Mirror, 2 = Raw Glow Gel Tint Mini (v2.8.7), 3 = Nu Blur Tint
   function tierFor100(s, th) {
     if (s >= th.high) return 3;
     if (s >= th.mid) return 2;
-    return 1;
+    if (s >= (th.low != null ? th.low : 0)) return 1;
+    return 0;
   }
   var GIFT_KEYS = ['mirror', 'mini', 'full']; // v2.8.5: Hair Tie dropped (owner 25/11), tier 1 = Heart Mirror only
   var GIFT_TIER = { mirror: 1, mini: 2, full: 3 };
   function left(stock, k) { return Math.max(0, (stock && stock[k]) | 0); }
   // gift for a tier from the event stock {mirror, mini, full}: full → mini → Mirror; never above the tier.
   // Returns {tier, giftKey, reason}: reason '' | 'downgraded' (a lower tier than earned) | 'outOfStock' (tier 0, nothing left)
+  // | 'lowScore' (v2.8.14: score under the lowest threshold, no gift)
   function pickGift(tier, stock, r) {
+    if ((tier | 0) < 1) return { tier: 0, giftKey: '', reason: 'lowScore' };
     tier = clamp(tier | 0, 1, 3);
     for (var t = tier; t >= 1; t--) {
       var key = '';
@@ -300,6 +304,7 @@
   // its tier down (stock changed meanwhile). Returns {tier, giftKey, reason}; reason '' | 'duplicate' | 'outOfStock' | 'downgraded'
   function resolveReward(tierByScore, opts) {
     // opts: {phone, records, rule:'perEvent'|'perDay'|'none', today, stock:{mirror,mini,full}, giftKey, rng}
+    if ((tierByScore | 0) < 1) return { tier: 0, giftKey: '', reason: 'lowScore' };
     tierByScore = clamp(tierByScore | 0, 1, 3);
     if (opts.rule !== 'none') {
       var dup = (opts.records || []).some(function (r) {

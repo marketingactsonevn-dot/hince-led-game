@@ -139,7 +139,7 @@
     bank(now); setState('anim');
     a = cards[r.a];
     if (r.result === 'nomatch') {
-      after(function () { wiggle(a); wiggle(c); Sfx.play('card_nomatch'); }, FLIP);
+      after(function () { wiggle(a); wiggle(c); Sfx.play('card_nomatch'); if (r.points < 0) countTo(S.score); }, FLIP); // v2.8.14 hard: a miss costs points
       after(function () { S.hideOpen(); [a, c].forEach(function (x) { x.el.classList.remove('open'); flipTo(x, false); }); setReady(); }, FLIP + BACK);
       return;
     }

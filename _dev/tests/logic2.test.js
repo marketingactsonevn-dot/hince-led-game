@@ -239,7 +239,7 @@ t('constants as TASK A2 (v2.6.1: 6 pairs, 3 x 4, 140 / 60) + difficulty levels',
   assert.strictEqual(M.peekMs, 3000); assert.strictEqual(M.activeMs, 45000);
   assert.deepStrictEqual(M.points, { pair: 140, combo: 60, perSecondLeft: 10 });
   assert.strictEqual(M.max, 1500);
-  assert.deepStrictEqual(M.levels, { easy: { peekMs: 5000, activeMs: 60000 }, normal: { peekMs: 3000, activeMs: 45000 }, hard: { peekMs: 1500, activeMs: 25000 } });
+  assert.deepStrictEqual(M.levels, { easy: { peekMs: 5000, activeMs: 60000 }, normal: { peekMs: 3000, activeMs: 45000 }, hard: { peekMs: 1500, activeMs: 25000, points: { pair: 120, combo: 60, perSecondLeft: 20, miss: 30 } } });
 });
 t('new session: deck = 6 distinct shades x 2 in 12 slots, clean state', () => {
   for (let s = 1; s <= 200; s++) {
@@ -355,7 +355,7 @@ t('timeUp(): ends the game, returns + closes open cards, no bonus afterwards', (
   assert.deepStrictEqual(S.timeUp(), []);
   assert.deepStrictEqual(S.found, [S.deck[p[0][0]]]);
 });
-t('difficulty: no opts == normal (same deck, byte for byte); easy/hard only change peek/active time', () => {
+t('difficulty: no opts == normal (same deck, byte for byte); easy only changes peek/active time; v2.8.14 hard also has its own points', () => {
   for (let s = 1; s <= 200; s++) {
     const N = JSON.stringify(new L.Umpah1Session(s));
     assert.strictEqual(JSON.stringify(new L.Umpah1Session(s, {})), N);
@@ -367,7 +367,16 @@ t('difficulty: no opts == normal (same deck, byte for byte); easy/hard only chan
   assert.deepStrictEqual([H.difficulty, H.peekMs, H.activeMs], ['hard', 1500, 25000]);
   assert.deepStrictEqual([X.difficulty, X.peekMs, X.activeMs], ['normal', 3000, 45000]);   // unknown -> normal
   assert.strictEqual(H.max, 1500);
-  pairsOf(H).forEach(q => { H.flip(q[0]); H.flip(q[1]); }); assert.strictEqual(H.score, 1140);
+  pairsOf(H).forEach(q => { H.flip(q[0]); H.flip(q[1]); }); assert.strictEqual(H.score, 6 * 120 + 5 * 60);
+});
+t('v2.8.14 hard: a miss costs 30 (never below 0), time left 20/s; normal/easy misses cost nothing', () => {
+  const H = new L.Umpah1Session(21, { difficulty: 'hard' }), p = pairsOf(H), x = otherThan(H, p[0][0]);
+  H.flip(p[0][0]); assert.strictEqual(H.flip(x).points, 0); H.hideOpen();           // score 0: nothing to take
+  H.flip(p[0][0]); assert.strictEqual(H.flip(p[0][1]).points, 120);
+  const y = otherThan(H, p[1][0]); H.flip(p[1][0]); const r = H.flip(y); assert.strictEqual(r.points, -30); assert.strictEqual(H.score, 90); H.hideOpen();
+  p.slice(1).forEach(q => { H.flip(q[0]); H.flip(q[1]); });
+  assert.strictEqual(H.complete(10000), 200);
+  const N = new L.Umpah1Session(21), q = pairsOf(N); N.flip(q[0][0]); N.flip(q[0][1]); N.flip(q[1][0]); assert.strictEqual(N.flip(otherThan(N, q[1][0])).points, 0); assert.strictEqual(N.score, 140);
 });
 t('fuzz 500 seeds: random flips/hideOpen/timeUp/complete never throw, invariants hold', () => {
   for (let s = 1; s <= 500; s++) {
@@ -380,7 +389,7 @@ t('fuzz 500 seeds: random flips/hideOpen/timeUp/complete never throw, invariants
       else {
         const r = S.flip(Math.floor(R() * 17) - (R() < 0.05 ? 1 : 0));
         assert(['ignored', 'first', 'match', 'nomatch'].indexOf(r.result) >= 0);
-        assert(r.points >= 0 && r.points <= 200);
+        assert(r.points >= -30 && r.points <= 200); // v2.8.14: hard miss -30
       }
       assert(S.score >= 0 && S.score <= S.max, 'seed ' + s);
       assert(S.open.length <= 2);

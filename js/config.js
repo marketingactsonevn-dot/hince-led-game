@@ -1,11 +1,12 @@
 /* hince LED Game — default settings. Most values can be changed in Admin (saved on the device). */
 window.DEFAULTS = {
-  appVersion: '2.8.13',
+  appVersion: '2.8.14',
   adminPin: '2026',
 
   // v2.7: every game shows a score 0–100 (Logic.score100); one pair of thresholds for all games (Control Center):
-  // 0 … mid-1 = tier 1 (Heart Mirror), mid … high-1 = tier 2 (Raw Glow Gel Tint Mini), high … 100 = tier 3 (Nu Blur Tint)
-  thresholds: { mid: 70, high: 90 },
+  // v2.8.14 (owner 27/11): 0 … low-1 = no gift (check-in voucher only), low … mid-1 = tier 1 (Heart Mirror),
+  // mid … high-1 = tier 2 (Raw Glow Gel Tint Mini), high … 100 = tier 3 (Nu Blur Tint)
+  thresholds: { low: 70, mid: 80, high: 90 },
   // game nào hiện ở màn chọn game (bật/tắt trong Admin; luôn còn ít nhất 1 game)
   games: { umpah: true, umpah2: true, taptap: true, taptap2: true },
   // v2.3 độ khó từng game: 'easy' | 'normal' | 'hard' (Control Center; áp dụng từ lượt sau; normal = như v2.2)
@@ -18,7 +19,7 @@ window.DEFAULTS = {
   giftStock: { mirror: 500, mini: 80, full: 50 }, // v2.8.5: Hair Tie dropped, Mirror 500; v2.8.7: mini = Raw Glow Gel Tint Mini, 80 (owner 26/11)
   miniShades: ['R002 Raw Rose', 'R006 Raw Grape', 'R015 Bite'], // v2.8.7: the receipt names one at random
   duplicateRule: 'perEvent',               // perEvent | perDay | none
-  requireFormForNoTier: true,              // v2.7: gifts all gone (outOfStock) → still ask for name + phone
+  requireFormForNoTier: true,              // v2.7: gifts all gone (outOfStock) → still ask for name + phone (v2.8.14: never for a score under thresholds.low)
 
   sound: true,
   volume: 0.8,

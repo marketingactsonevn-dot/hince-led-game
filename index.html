@@ -265,20 +265,20 @@
 
   <!-- ============ RESULT (v2.6 09_result: taped sheet, big serif score, meter with 2 cocoa ticks; v2.7: score 0–100 + gift reveal polaroid) ============ -->
   <!-- app.js showResult(): #s-result[data-tier] 1/2/3 = .res-got + the gift polaroid #res-gift, 0 = .res-close (gifts all gone); count-up + 14-cell meter;
-       ticks #res-ico1/2 at the thresholds (70 / 90). data-fx 1/2/3 = celebration size (Mirror / Mini / full-size); .rev = reveal, .rev-end = skipped to the end -->
+       ticks #res-ico1/3/2 at the thresholds (70 / 80 / 90). data-fx 1/2/3 = celebration size (Mirror / Mini / full-size); .rev = reveal, .rev-end = skipped to the end -->
   <section class="screen v2" id="s-result" data-tier="2" data-fx="2">
     <div class="abs paper res-sheet">
       <div class="res-eb" id="res-eb"></div>
       <div class="disp res-score" id="res-score">0</div>
       <div class="res-of" id="res-of"></div>
       <div class="res-meter"><div class="res-seg" id="res-seg"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <div class="res-ico" id="res-ico1"><b></b><span id="res-ml1"></span></div><div class="res-ico" id="res-ico2"><b></b><span id="res-ml2"></span></div></div>
+        <div class="res-ico" id="res-ico1"><b></b><span id="res-ml1"></span></div><div class="res-ico" id="res-ico3"><b></b><span id="res-ml3"></span></div><div class="res-ico" id="res-ico2"><b></b><span id="res-ml2"></span></div></div>
       <div class="res-got">
         <div class="disp it res-line" data-i18n="result.youGet" data-fit></div>
       </div>
       <div class="res-close">
-        <div class="disp it res-line" data-i18n="result.soldOut" data-fit></div>
-        <div class="res-need" data-i18n="result.askStaff" data-fit></div>
+        <div class="disp it res-line" id="res-cl1" data-fit></div><!-- v2.8.14: app.js writes 'gifts all gone' or 'not enough points' -->
+        <div class="res-need" id="res-cl2" data-fit></div>
       </div>
     </div>
     <div class="res-title" id="res-title"></div><!-- v2.4 title (JS writes it), not shown in v2.6 -->

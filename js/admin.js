@@ -131,7 +131,8 @@
           stp('gs_' + k, st[k], [-10, -1, 1, 10]), 'gs');
       }).join('')));
       h += sec(T('cc.thHead'), box(
-        row(T('cc.thMid') + '<span class="cc-pts">' + T('cc.thRange', { a: s.thresholds.mid, b: s.thresholds.high - 1 }) + ' · ' + T('cc.thLow', { n: s.thresholds.mid }) + '</span>', stp('th_mid', s.thresholds.mid, [-5, -1, 1, 5])) +
+        row(T('cc.thMirror') + '<span class="cc-pts">' + T('cc.thRange', { a: s.thresholds.low, b: s.thresholds.mid - 1 }) + ' · ' + T('cc.thLow', { n: s.thresholds.low }) + '</span>', stp('th_low', s.thresholds.low, [-5, -1, 1, 5])) +
+        row(T('cc.thMid') + '<span class="cc-pts">' + T('cc.thRange', { a: s.thresholds.mid, b: s.thresholds.high - 1 }) + '</span>', stp('th_mid', s.thresholds.mid, [-5, -1, 1, 5])) +
         row(T('cc.thHigh') + '<span class="cc-pts">' + T('cc.thRange', { a: s.thresholds.high, b: 100 }) + '</span>', stp('th_high', s.thresholds.high, [-5, -1, 1, 5]))) +
         '<p class="cc-note">' + T('cc.giftsNote') + '</p>');
       h += sec(T('cc.rules'), box(
@@ -223,10 +224,11 @@
       var key = t.getAttribute('data-step'), d = +t.getAttribute('data-d');
       if (key.indexOf('gs_') === 0) { var gk = key.slice(3), st = Store.giftStock(); Store.setGiftStock(gk, st[gk] + d); Store.log('stock ' + gk + ' ' + st[gk] + ' -> ' + Store.giftStock()[gk]); render(); return; }
       save(function (s) {
-        if (key === 'th_mid' || key === 'th_high') { // 5 ≤ mid < high ≤ 100: the other one moves to keep 5 points apart
-          var t = { mid: s.thresholds.mid, high: s.thresholds.high };
-          if (key === 'th_mid') { t.mid = Logic.clamp(t.mid + d, 5, 95); if (t.high <= t.mid) t.high = Math.min(100, t.mid + 5); }
-          else { t.high = Logic.clamp(t.high + d, 10, 100); if (t.mid >= t.high) t.mid = Math.max(5, t.high - 5); }
+        if (key === 'th_low' || key === 'th_mid' || key === 'th_high') { // v2.8.14: 0 ≤ low < mid < high ≤ 100, neighbours move to keep 5 points apart
+          var t = { low: s.thresholds.low, mid: s.thresholds.mid, high: s.thresholds.high };
+          if (key === 'th_low') { t.low = Logic.clamp(t.low + d, 0, 90); t.mid = Math.max(t.mid, t.low + 5); t.high = Math.max(t.high, t.mid + 5); }
+          if (key === 'th_mid') { t.mid = Logic.clamp(t.mid + d, 5, 95); t.low = Math.min(t.low, t.mid - 5); t.high = Math.max(t.high, t.mid + 5); }
+          if (key === 'th_high') { t.high = Logic.clamp(t.high + d, 10, 100); t.mid = Math.min(t.mid, t.high - 5); t.low = Math.min(t.low, t.mid - 5); }
           s.thresholds = t;
         }
         if (key === 'vol') s.volume = Logic.clamp(Math.round((s.volume + d / 100) * 100) / 100, 0, 1);

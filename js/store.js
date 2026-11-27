@@ -49,6 +49,8 @@
     if (!saved || typeof saved !== 'object') return saved;
     var ch = false, th = saved.thresholds;
     if (th && (typeof th.mid !== 'number' || typeof th.high !== 'number')) { delete saved.thresholds; ch = true; }
+    // v2.8.14: new 70 / 80 / 90 rule (owner 27/11) replaces any saved 2-threshold pair once
+    if (!saved.th2814) { delete saved.thresholds; saved.th2814 = true; ch = true; }
     if (saved.dailyStock) { delete saved.dailyStock; ch = true; }
     if (saved.gifts && ('tier1' in saved.gifts || 'tier2' in saved.gifts)) { delete saved.gifts; delete saved.giftsEn; ch = true; }
     // v2.7.1: the default language becomes EN. Control Center saves the whole settings object, so a kiosk that ever saved
@@ -63,7 +65,7 @@
       ['gifts', 'giftsEn'].forEach(function (n) { if (saved[n] && /nu blur/i.test(saved[n].mini || '')) delete saved[n].mini; });
       saved.gift287 = true; ch = true;
     }
-    if (ch) { write(K.settings, saved); log('settings migrated (thresholds 70/90, gift names, default language VI v2.8.6, Raw Glow Mini v2.8.7)'); }
+    if (ch) { write(K.settings, saved); log('settings migrated (thresholds 70/90, gift names, default language VI v2.8.6, Raw Glow Mini v2.8.7, thresholds 70/80/90 v2.8.14)'); }
     return saved;
   }
   var GK = ['mirror', 'mini', 'full'];

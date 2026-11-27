@@ -209,7 +209,10 @@
     peekMs: 3000, activeMs: 45000,                       // "Vừa" (normal)
     points: { pair: 140, combo: 60, perSecondLeft: 10 }, // combo = 2nd+ match with no nomatch since the previous match; v2.6.1: 6 pairs, a perfect run = 140 + 5 x 200 = 1140 (8 pairs gave 1150)
     max: 1500,                                           // score capped at max; gift tiers = % of max
-    levels: { easy: { peekMs: 5000, activeMs: 60000 }, normal: { peekMs: 3000, activeMs: 45000 }, hard: { peekMs: 1500, activeMs: 25000 } } // v2.8.3 hard: 35 → 25 s, peek 2 → 1.5 s (owner 25/11: still too easy)
+    levels: { easy: { peekMs: 5000, activeMs: 60000 }, normal: { peekMs: 3000, activeMs: 45000 }, hard: { peekMs: 1500, activeMs: 25000, // v2.8.3 hard: 35 → 25 s, peek 2 → 1.5 s (owner 25/11: still too easy)
+      // v2.8.14 (owner 27/11: 70+ too easy; real hard plays 65–85 as soon as all pairs are found): each wrong pair costs points,
+      // time left counts double, a pair is worth less → the score follows the number of misses (≈ 4 misses = 70, 2 = 85, 0 = 95+)
+      points: { pair: 120, combo: 60, perSecondLeft: 20, miss: 30 } } }
   };
 
   // opts.difficulty 'easy' | 'normal' | 'hard' (unknown/none = normal) changes only peekMs/activeMs, never the deck or scoring
@@ -219,6 +222,7 @@
     this.difficulty = d;
     this.peekMs = lv.peekMs;
     this.activeMs = lv.activeMs;
+    this.pts = lv.points || MEMO.points; // v2.8.14: hard has its own points (with a miss penalty)
     var pick = shuffle(SHADES.slice(), r).slice(0, MEMO.pairs);
     this.deck = shuffle(pick.concat(pick), r);
     this.matched = [];
@@ -246,14 +250,15 @@
     var a = this.open[0], shade = this.deck[i];
     if (this.deck[a] !== shade) {
       this.open.push(i); this.misses++; this.streak = 0;
-      return this._res('nomatch', a, i, shade, 0);
+      var loss = Math.min(this.score, this.pts.miss || 0); this.score -= loss; // v2.8.14: never below 0
+      return this._res('nomatch', a, i, shade, loss ? -loss : 0);
     }
     this.matched[a] = this.matched[i] = true;
     this.open = [];
     this.found.push(shade);
     this.pairsFound++;
     this.streak++;
-    var pts = MEMO.points.pair + (this.streak >= 2 ? MEMO.points.combo : 0);
+    var pts = this.pts.pair + (this.streak >= 2 ? this.pts.combo : 0);
     this.score = Math.min(this.max, this.score + pts);
     return this._res('match', a, i, shade, pts);
   };
@@ -263,7 +268,7 @@
   Umpah1Session.prototype.complete = function (msLeft) {
     if (this.pairsFound < MEMO.pairs || this._over || this._paid) return 0;
     this._paid = true;
-    var add = Math.min(this.max - this.score, MEMO.points.perSecondLeft * Math.floor(Math.max(0, msLeft || 0) / 1000));
+    var add = Math.min(this.max - this.score, this.pts.perSecondLeft * Math.floor(Math.max(0, msLeft || 0) / 1000));
     this.score += add; this.bonus = add;
     return add;
   };

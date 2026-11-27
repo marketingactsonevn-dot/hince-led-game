@@ -51,8 +51,8 @@
     var p = function (n) { return (n < 10 ? '0' : '') + n; }, off = -d.getTimezoneOffset(), s = off >= 0 ? '+' : '-'; off = Math.abs(off);
     return Logic.localDate(d) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + s + p(Math.floor(off / 60)) + ':' + p(off % 60);
   }
-  // v2.7: score 0–100 for every game, one pair of thresholds (settings.thresholds {mid, high}) → tier 1 / 2 / 3
-  function th() { var t = App.settings.thresholds || {}; return { mid: t.mid > 0 ? t.mid : 70, high: t.high > 0 ? t.high : 90 }; }
+  // v2.7: score 0–100 for every game; v2.8.14: three thresholds (settings.thresholds {low, mid, high}) → tier 0 (no gift) / 1 / 2 / 3
+  function th() { var t = App.settings.thresholds || {}; return { low: t.low > 0 ? t.low : 70, mid: t.mid > 0 ? t.mid : 80, high: t.high > 0 ? t.high : 90 }; }
   // stock the RESULT pick reads: the real event stock; test mode = a full virtual stock (nothing is counted)
   function pickStock() { return App.settings.testMode ? window.DEFAULTS.giftStock : Store.giftStock(); }
   // shrink el's font-size from max px until the text fits its box width (and maxH px height when given); el must be visible
@@ -308,8 +308,11 @@
     $('res-title').innerHTML = p.tier ? 'LEVEL ' + p.tier + '<br>CLEAR!' : 'SO<br>CLOSE!';
     $('res-eb').textContent = T('result.eyebrow', { game: GAME[g].name.toUpperCase() });
     $('res-of').textContent = T('result.of', { max: 100 });
-    $('res-ico1').style.left = t.mid + '%'; $('res-ml1').textContent = T('result.tickMid', { n: t.mid }); // ticks at the thresholds (0–100 = the meter)
+    $('res-ico1').style.left = t.low + '%'; $('res-ml1').textContent = T('result.tickLow', { n: t.low }); // ticks at the thresholds (0–100 = the meter)
+    $('res-ico3').style.left = t.mid + '%'; $('res-ml3').textContent = T('result.tickMid', { n: t.mid });
     $('res-ico2').style.left = t.high + '%'; $('res-ml2').textContent = T('result.tickHigh', { n: t.high });
+    var low = p.reason === 'lowScore'; // v2.8.14: under the lowest threshold = no gift, the check-in voucher only (no form)
+    $('res-cl1').textContent = T(low ? 'result.low' : 'result.soldOut'); $('res-cl2').textContent = T(low ? 'result.lowNote' : 'result.askStaff', { n: t.low });
     // cell i lights when the count-up passes (i + .5) / 14 of 100 (inverse of the ease-out below)
     var cells = $('res-seg').children, lit = Math.round(14 * r.s100 / 100);
     for (var i = 0; i < cells.length; i++) {
@@ -326,7 +329,7 @@
       $('res-down').textContent = p.reason === 'downgraded' ? T('result.downgrade') : '';
       confetti(CONF[lvl] || 12);
     } else { $('rg-confetti').innerHTML = ''; $('res-down').textContent = ''; }
-    var next = $('res-next'), skip = $('res-skip'), form = p.tier > 0 || App.settings.requireFormForNoTier;
+    var next = $('res-next'), skip = $('res-skip'), form = p.tier > 0 || (App.settings.requireFormForNoTier && !low);
     next.firstChild.textContent = T(p.tier ? 'result.claim' : 'result.save');
     next.style.display = form ? '' : 'none'; skip.style.display = form ? 'none' : '';
     var el = $('res-score'); $('res-seg').classList.remove('now');
