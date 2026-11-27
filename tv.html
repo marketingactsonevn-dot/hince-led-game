@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>hince · StanbyME</title>
 <!-- v2.8.13: LG StanbyME = video only (owner 27/11). Kiosks named TV… are sent here from index.html.
-     Opened from raw.githack.com (outside the old game SW scope). Offline: the video is stored once in the Cache API and
-     played from a blob URL (loops with no network); tv-sw.js keeps a copy of this page for a reload without network. -->
+     Opened from raw.githack.com (outside the old game SW scope). Offline: the video is stored once in the Cache API; tv-sw.js
+     answers the video's (range) requests from that copy and keeps a copy of this page. A blob: URL gave a black screen on webOS. -->
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; cursor: none; }
   video { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #000; }
@@ -17,39 +17,25 @@
 <script>
 (function () {
   var U = 'https://marketingactsonevn-dot.github.io/hince-led-game/assets/video/standby_tv.mp4', VC = 'hince-tv-video-v1', PC = 'hince-tv-page-v1';
-  var v = document.getElementById('v'), last = -1, still = 0, blobUrl = '';
+  var v = document.getElementById('v'), last = -1, still = 0, mode = 0; // mode 0 = U (tv-sw.js answers from the stored copy), 1 = straight from the network
   function kick() { var p = v.play(); if (p && p.catch) p.catch(function () { }); }
-  function setSrc(s, t) {
-    v.src = s; v.load();
-    if (t) v.addEventListener('loadedmetadata', function () { try { v.currentTime = t; } catch (e) { } }, { once: true });
-    kick();
-  }
-  function reload() { setSrc(blobUrl || U + '?r=' + Date.now()); }
-  function useBlob(res) { // play the stored copy: loops without network
-    return res.blob().then(function (b) {
-      if (b.size < 1000000) throw new Error('bad copy');
-      blobUrl = URL.createObjectURL(b); setSrc(blobUrl, v.currentTime); window.tvOffline = true;
-    });
-  }
+  function setSrc() { v.src = mode ? U + '?net=1&r=' + Date.now() : U; v.load(); kick(); }
+  function swap() { mode = 1 - mode; setSrc(); } // stuck or error: try the other way (webOS media pipeline is picky)
   v.addEventListener('canplay', kick);
   v.addEventListener('ended', function () { v.currentTime = 0; kick(); }); // loop fallback
-  v.addEventListener('error', function () { setTimeout(reload, 5000); });
-  // stuck video (webOS, network) → reload after ~10 s without progress
-  setInterval(function () {
-    if (v.currentTime === last) { if (++still >= 5) { still = 0; reload(); } } else { still = 0; last = v.currentTime; }
+  v.addEventListener('error', function () { setTimeout(swap, 3000); });
+  setInterval(function () { // no progress for ~10 s → swap
+    if (v.currentTime === last) { if (++still >= 5) { still = 0; swap(); } } else { still = 0; last = v.currentTime; }
   }, 2000);
+  setSrc();
 
-  if (!('caches' in window)) { setSrc(U); return; }
-  caches.open(VC).then(function (c) {
+  // store the video once (GitHub Pages sends Access-Control-Allow-Origin: *) so tv-sw.js can play it without network
+  if ('caches' in window) caches.open(VC).then(function (c) {
     return c.match(U).then(function (hit) {
-      if (hit) return useBlob(hit).catch(function () { return c.delete(U).then(function () { setSrc(U); }); });
-      setSrc(U); // play from the network now, store a copy in the background
-      return fetch(U, { mode: 'cors', cache: 'reload' }).then(function (r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return c.put(U, r).then(function () { return c.match(U); }).then(useBlob);
-      });
+      if (hit) return;
+      return fetch(U + '?net=1', { mode: 'cors', cache: 'reload' }).then(function (r) { if (r.ok) return c.put(U, r); });
     });
-  }).catch(function () { if (!v.currentSrc) setSrc(U); }); // no storage / no network: network only, retried by the watchdog
+  }).catch(function () { });
 
   // page copy for a reload without network (not on github.io: that scope belongs to the game's sw.js)
   if (location.host.indexOf('github.io') < 0 && 'serviceWorker' in navigator) {
