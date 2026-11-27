@@ -485,7 +485,7 @@ t('values as TASK §D table (session fields); module constants unchanged', () =>
     const S = new L.Umpah2Session(1, { difficulty: d }); assert.deepStrictEqual([S.difficulty, S.activeMs, S.plan, S.max], [d, ms, plans[d], 1500]);
   });
   assert.strictEqual(K.activeMs, 30000); assert.deepStrictEqual(K.plan, plans.normal);
-  [['easy', 87.5, 175], ['normal', 70, 140], ['hard', 112, 224]] /* v2.8.14 hard x1.6 */.forEach(([d, p, g]) => {
+  [['easy', 87.5, 175], ['normal', 70, 140], ['hard', 77, 154]] /* v2.8.16 hard x1.1 */.forEach(([d, p, g]) => {
     const S = new T1.TilesSession(1, { difficulty: d }); assert.deepStrictEqual([S.difficulty, S.perfectMs, S.goodMs], [d, p, g]);
   });
   assert.strictEqual(T1.TILES.perfectMs, 70); assert.strictEqual(T1.TILES.goodMs, 140);
@@ -527,14 +527,14 @@ t('Um-Pah! 2 hard (5 NN lips): 1000 seeds, every NN target has a valid NN pair (
   for (let s = 1; s <= 300; s++) checkLips(new L.Umpah2Session(s, { difficulty: 'easy' }), 'easy seed ' + s);
 });
 const phaseOf = tt => T1.TILES.phases.findIndex(p => tt < p.until);
-t('Tap-Tap! 1 charts: interval/approach x1.2 easy, x0.88 hard (whole ms); S.max from its own chart; easy fewer notes, hard more', () => {
-  const want = { easy: [[720, 1800], [552, 1380], [456, 1080]], normal: [[600, 1500], [460, 1150], [380, 900]], hard: [[528, 1320], [405, 1012], [334, 792]] };
+t('Tap-Tap! 1 charts: interval/approach x1.2 easy, x0.75 hard (whole ms); S.max from its own chart; easy fewer notes, hard more', () => {
+  const want = { easy: [[720, 1800], [552, 1380], [456, 1080]], normal: [[600, 1500], [460, 1150], [380, 900]], hard: [[450, 1125], [345, 863], [285, 675]] };
   for (let s = 1; s <= 50; s++) {
     const n = {};
     LV.forEach(d => {
       const S = new T1.TilesSession(s, { difficulty: d }), c = S.notes;
       n[d] = c.length;
-      assert.strictEqual(S.max, Math.round(T1.chartMax(c) * (d === 'hard' ? 0.55 : 1))); // v2.8.14 hard: 100 = 55 % of the chart max
+      assert.strictEqual(S.max, Math.round(T1.chartMax(c) * (d === 'hard' ? 0.65 : 1))); // v2.8.16 hard: 100 = 65 % of the chart max
       assert.strictEqual(c[0].t, 1600); assert(c.every(x => x.t <= 29000 && x.lane >= 0 && x.lane < 4));
       c.forEach((x, i) => {
         assert.strictEqual(x.approach, want[d][phaseOf(x.t)][1], d + ' seed ' + s);
@@ -545,13 +545,13 @@ t('Tap-Tap! 1 charts: interval/approach x1.2 easy, x0.88 hard (whole ms); S.max 
     assert(n.easy < n.normal && n.normal < n.hard, 'seed ' + s + ' ' + JSON.stringify(n));
   }
 });
-t('Tap-Tap! 1 hit windows x1.25 easy / x1.6 hard (v2.8.14) judge taps and misses; perfect play = max (hard: >= max, 100/100)', () => {
+t('Tap-Tap! 1 hit windows x1.25 easy / x1.1 hard (v2.8.16) judge taps and misses; perfect play = max (hard: >= max, 100/100)', () => {
   const at = (d, dt) => { const S = new T1.TilesSession(9, { difficulty: d }), n = S.notes[0]; S.update(n.t + dt); return S.tap(n.lane, n.t + dt).type; };
-  assert.deepStrictEqual(LV.map(d => at(d, 80)), ['perfect', 'good', 'perfect']);
+  assert.deepStrictEqual(LV.map(d => at(d, 80)), ['perfect', 'good', 'good']);
   assert.deepStrictEqual(LV.map(d => at(d, 65)), ['perfect', 'perfect', 'perfect']);
   assert.deepStrictEqual(LV.map(d => at(d, -125)), ['good', 'good', 'good']);
-  assert.deepStrictEqual(LV.map(d => at(d, 160)), ['good', 'empty', 'good']);
-  assert.deepStrictEqual(LV.map(d => at(d, 230)), ['empty', 'empty', 'empty']); // hard good = ±224 ms
+  assert.deepStrictEqual(LV.map(d => at(d, 160)), ['good', 'empty', 'empty']);
+  assert.deepStrictEqual(LV.map(d => at(d, 230)), ['empty', 'empty', 'empty']); // hard good = ±154 ms
   const missed = (d, dt) => { const S = new T1.TilesSession(9, { difficulty: d }); return S.update(S.notes[0].t + dt).length > 0; };
   assert.deepStrictEqual(LV.map(d => missed(d, 150)), [false, true, false]);
   assert.deepStrictEqual(LV.map(d => missed(d, 230)), [true, true, true]);
